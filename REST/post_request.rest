@@ -1,0 +1,45 @@
+
+
+###
+
+GET http://localhost:3000/posts
+
+###
+
+GET http://localhost:3000/posts?owner=Nadav
+###
+
+PUT http://localhost:3000/posts/6757069cee449e663786fed8
+Content-Type: application/json
+
+{
+    "title": "UPDATE1",
+    "content": "UPDATE1",
+    "owner": "Updated"
+}
+
+###
+
+GET http://localhost:3000/posts/67570696ee449e663786fed6
+
+###
+
+POST http://localhost:3000/posts
+Content-Type: application/json
+
+{
+    "title": "TEST",
+    "content": "TEST",
+    "owner": "Sacha"
+}
+
+###
+
+DELETE http://localhost:3000/posts/6745c8fbd0524dbda22ba028
+Content-Type: application/json
+
+###
+
+DELETE http://localhost:3000/posts
+
+###
