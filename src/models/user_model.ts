@@ -1,10 +1,11 @@
 import mongoose from "mongoose";
 
 export interface iUser {
-  email: string,
-  password: string,
-  _id?: string,
-  refreshToken?: string[],
+  email: string;
+  password: string;
+  _id?: string;
+  refreshToken?: string[];
+  imgURL?: string;
 }
 
 const userSchema = new mongoose.Schema<iUser>({
@@ -20,7 +21,10 @@ const userSchema = new mongoose.Schema<iUser>({
   refreshToken: {
     type: [String],
     default: [],
-  }
+  },
+  imgURL: {
+    type: String,
+  },
 });
 
 const userModel = mongoose.model<iUser>("users", userSchema);
