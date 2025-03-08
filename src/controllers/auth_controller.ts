@@ -4,10 +4,48 @@ import userModel from "../models/user_model";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { OAuth2Client } from "google-auth-library";
 
 type Payload = {
   _id: string;
 };
+
+const client = new OAuth2Client();
+const googleSignIn = async (req: Request, res: Response) => {
+  try{
+    const ticket = await client.verifyIdToken({
+    idToken: req.body.credential,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+  const payload = ticket.getPayload();
+  const email = payload?.email;
+  if(!email) {
+    return res.status(400).send('Invalid credentials');
+  }
+  let user =await userModel.findOne({email: email});
+  if(!user) {
+      user = await userModel.create({
+      email: email,
+      password: ' ',
+      imgUrl: payload?.picture
+    });
+    const tokens = generateToken(user._id);
+    if(!tokens) {
+      return res.status(500).send('server error');
+    }
+    if(user.refreshToken==null){
+      user.refreshToken = [];
+    }
+    user.refreshToken.push(tokens.refreshToken);
+    await user.save()
+    return res.status(200).send({ email:user.email,_id: user._id, imgUrl: user.imgURL,...tokens});
+  }
+}catch (err) {
+  console.log((err as Error).message);
+  return res.status(400).send((err as Error).message);
+} 
+  
+}
 
 const register = async (req: Request, res: Response) => {
   try {
@@ -262,4 +300,5 @@ export default {
   deleteUser,
   getAllUsers,
   getUserById,
+  googleSignIn,
 };
