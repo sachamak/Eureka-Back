@@ -14,9 +14,12 @@ const register = async (req: Request, res: Response) => {
     const password = req.body.password;
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    let ImgUrl = req.body.imgUrl;
+    if (!ImgUrl) ImgUrl = null;
     const user = await userModel.create({
       email: req.body.email,
       password: hashedPassword,
+      imgURL: ImgUrl,
     });
     res.status(200).send(user);
   } catch (error) {
@@ -68,13 +71,11 @@ const login = async (req: Request, res: Response) => {
     }
     user.refreshToken.push(tokens.refreshToken);
     await user.save();
-    res
-      .status(200)
-      .send({
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-        _id: user._id,
-      });
+    res.status(200).send({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      _id: user._id,
+    });
   } catch (error) {
     res.status(400).send(error);
   }
@@ -161,12 +162,10 @@ const refresh = async (req: Request, res: Response) => {
         user.refreshToken = user.refreshToken.filter((t) => t !== refreshToken);
         user.refreshToken.push(tokens.refreshToken);
         await user.save();
-        res
-          .status(200)
-          .send({
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
-          });
+        res.status(200).send({
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+        });
       } catch (err) {
         res.status(400).send(err);
       }
