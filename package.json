@@ -5,7 +5,7 @@
   "scripts": {
     "test": "tsc && jest --detectOpenHandles --forceExit --RunInBand --coverage",
     "testAuth": "tsc && jest --detectOpenHandles --forceExit --coverage auth.test.ts",
-    "testPost": "tsc && jest --detectOpenHandles --forceExit --coverage post.test.ts",
+    "testPost": "tsc && jest --detectOpenHandles --forceExit post.test.ts",
     "testComments": "tsc && jest --detectOpenHandles --forceExit --coverage comments.test.ts",
     "testFile": "tsc && jest --detectOpenHandles --forceExit file.test.ts",
     "start": "tsc && node dist/src/index.js",
