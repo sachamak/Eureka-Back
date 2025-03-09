@@ -2,6 +2,29 @@ import express from "express";
 const router = express.Router();
 import postsController from "../controllers/posts_controller";
 import { authMiddleware } from "../controllers/auth_controller";
+import multer from "multer";
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public/");
+  },
+  filename: function (req, file, cb) {
+    const ext = file.originalname
+      .split(".")
+      .filter(Boolean)
+      .slice(1)
+      .join(".");
+    cb(null, Date.now() + "." + ext);
+  },
+});
+const upload = multer({ storage: storage });
+
+
+router.post("/", authMiddleware, upload.single("file"), postsController.create.bind(postsController));
+
+router.put("/:id", authMiddleware, upload.single("file"), postsController.update.bind(postsController));
+
+
 
 /**
  * @swagger
@@ -128,7 +151,7 @@ router.get("/:id", postsController.getById.bind(postsController));
  *       500:
  *         description: Server error
  */
-router.post("/", authMiddleware, postsController.create.bind(postsController));
+//router.post("/", authMiddleware, postsController.create.bind(postsController));
 
 /**
  * @swagger
@@ -207,10 +230,6 @@ router.delete(
  *         description: Server error
  */
 
-router.put(
-  "/:id",
-  authMiddleware,
-  postsController.updateById.bind(postsController)
-);
+//router.put( "/:id",authMiddleware,postsController.updateById.bind(postsController));
 
 export default router;
