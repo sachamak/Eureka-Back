@@ -23,11 +23,12 @@ const googleSignIn = async (req: Request, res: Response) => {
     return res.status(400).send('Invalid credentials');
   }
   let user =await userModel.findOne({email: email});
+  const picture = payload?.picture;
   if(!user) {
       user = await userModel.create({
       email: email,
       password: ' ',
-      imgUrl: payload?.picture
+      imgURL: picture,
     });
     const tokens = generateToken(user._id);
     if(!tokens) {
@@ -266,7 +267,13 @@ const getAllUsers = async (req: Request, res: Response) => {
 const updateUser = async (req: Request, res: Response) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.params.id);
-    const user = await userModel.findByIdAndUpdate(userId, req.body, {
+    const updateData = req.body;
+
+    if (req.body.imgURL) {
+      updateData.imgURL = req.body.imgURL;
+    }
+
+    const user = await userModel.findByIdAndUpdate(userId, updateData, {
       new: true,
     });
     if (!user) {
@@ -278,6 +285,7 @@ const updateUser = async (req: Request, res: Response) => {
     res.status(400).send(err);
   }
 };
+
 
 const deleteUser = async (req: Request, res: Response) => {
   try {

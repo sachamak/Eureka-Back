@@ -6,25 +6,34 @@ import multer from "multer";
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "public/"); 
+    cb(null, "public/posts/");
   },
   filename: function (req, file, cb) {
-    const ext = file.originalname
-      .split(".")
-      .filter(Boolean)
-      .slice(1)
-      .join(".");
+    const ext = file.originalname.split(".").filter(Boolean).slice(1).join(".");
     cb(null, Date.now() + "." + ext);
   },
 });
 const upload = multer({ storage: storage });
 
+router.post(
+  "/:id/like",
+  authMiddleware,
+  postsController.likePost.bind(postsController)
+);
 
-router.post("/", authMiddleware, upload.single("file"), postsController.create.bind(postsController));
+router.post(
+  "/",
+  authMiddleware,
+  upload.single("file"),
+  postsController.create.bind(postsController)
+);
 
-router.put("/:id", authMiddleware, upload.single("file"), postsController.update.bind(postsController));
-
-
+router.put(
+  "/:id",
+  authMiddleware,
+  upload.single("file"),
+  postsController.update.bind(postsController)
+);
 
 /**
  * @swagger
