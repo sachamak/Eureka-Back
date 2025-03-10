@@ -27,7 +27,7 @@ const postSchema = new mongoose.Schema<iPost>({
     default: [],
   },
   comments: {
-    type: [String],
+    type: [mongoose.Types.ObjectId],
     default: [],
     ref: "comments",
   },

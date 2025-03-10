@@ -61,8 +61,6 @@ describe("Comment test suite", () => {
     const postResponse = await request(app)
       .get(`/posts/${response1.body._id}`)
       .set({ authorization: "JWT " + testUser.accessToken });
-    console.log(postResponse.body.comments[0]);
-
     expect(postResponse.status).toBe(200);
     expect(postResponse.body.comments).toContain(commentId);
   });

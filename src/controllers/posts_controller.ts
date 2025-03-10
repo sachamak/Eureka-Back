@@ -34,35 +34,25 @@ class PostController extends BaseController<iPost> {
     try {
       const { title, content } = req.body;
       const postId = req.params.id;
-
       const post = await this.model.findById(postId);
       if (!post) {
-        return res.status(404).json({ message: "Post not found" });
+        return res.status(404).send({ message: "Post not found" });
       }
-
       let imagePath = post.image;
-
       if (req.file) {
-        // Delete the old image from storage if it exists
         if (post.image) {
           const oldImagePath = path.join(
             __dirname,
             "..",
             "public",
-            post.image.replace(/^.*\/public\//, "") // Extracts relative path
+            post.image.replace(/^.*\/public\//, "")
           );
-
           if (fs.existsSync(oldImagePath)) {
             fs.unlinkSync(oldImagePath);
-            console.log(`Deleted old image: ${oldImagePath}`);
           }
         }
-
-        // Set the new image path
         imagePath = `/public/posts/${req.file.filename}`;
       }
-
-      // Update the post in the database
       const updatedPost = await this.model.findByIdAndUpdate(
         postId,
         { title, content, image: imagePath },
