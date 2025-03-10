@@ -9,7 +9,6 @@ import testPostUpdate from "./PostTestsItems/test_post_update.json";
 import invalidPost from "./PostTestsItems/test_invalid_post.json";
 import path from "path";
 
-
 let app: Express;
 type User = iUser & { accessToken?: string };
 const testUser: User = {
@@ -35,42 +34,66 @@ afterAll(async () => {
 });
 let postId = "";
 let postId1 = "";
-  
-  test("Post test get all post", async () => {
-    const response = await request(app).get("/posts");
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveLength(0);
-  });
-  describe("Post test suite", () => {
-    test("Create post with image", async () => {
-      const filePath = path.join(__dirname, "PostTestsItems", "avatar.png");
-  
-      const response = await request(app)
-        .post("/posts")
-        .set({ authorization: "JWT " + testUser.accessToken })
-        .field("title", "Test Post")
-        .field("content", "This is a test post")
-        .attach("file", filePath);
-        postId1 = response.body._id;
-      expect(response.statusCode).toBe(201);
-      expect(response.body).toHaveProperty("image");
-    });
 
-    test("Update post with new image", async () => {
-      const filePath = path.join(__dirname, "PostTestsItems", "avatar1.jpg");
-  
-      const response = await request(app)
-        .put(`/posts/${postId1}`)
-        .set({ authorization: "JWT " + testUser.accessToken })
-        .field("title", "Updated Post Title")
-        .field("content", "Updated content")
-        .attach("file", filePath);
-  
-      expect(response.statusCode).toEqual(200);
-      expect(response.body.title).toEqual("Updated Post Title");
-      expect(response.body.content).toEqual("Updated content");
-      expect(response.body.image).toMatch(/public\/\d+\.\w+/);
-    });
+test("Post test get all post", async () => {
+  const response = await request(app).get("/posts");
+  expect(response.status).toBe(200);
+  expect(response.body).toHaveLength(0);
+});
+describe("Post test suite", () => {
+  test("Create post with image", async () => {
+    const filePath = path.join(__dirname, "PostTestsItems", "avatar.png");
+
+    const response = await request(app)
+      .post("/posts")
+      .set({ authorization: "JWT " + testUser.accessToken })
+      .field("title", "Test Post")
+      .field("content", "This is a test post")
+      .attach("file", filePath);
+    postId1 = response.body._id;
+    expect(response.statusCode).toBe(201);
+    expect(response.body).toHaveProperty("image");
+    expect(response.body.image).toMatch(/public\/posts\/\d+\.\w+/);
+  });
+
+  test("Update post with new image", async () => {
+    const filePath = path.join(__dirname, "PostTestsItems", "avatar1.jpg");
+
+    const response = await request(app)
+      .put(`/posts/${postId1}`)
+      .set({ authorization: "JWT " + testUser.accessToken })
+      .field("title", "Updated Post Title")
+      .field("content", "Updated content")
+      .attach("file", filePath);
+
+    expect(response.statusCode).toEqual(200);
+    expect(response.body.title).toEqual("Updated Post Title");
+    expect(response.body.content).toEqual("Updated content");
+    expect(response.body.image).toMatch(/public\/posts\/\d+\.\w+$/);
+  });
+
+  test("Test Liking and Unliking a Post", async () => {
+    const postResponse = await request(app)
+      .post("/posts")
+      .set({ authorization: "JWT " + testUser.accessToken })
+      .send({ title: "Test Post", content: "Content" });
+    const postIdTest = postResponse.body._id;
+    const likeResponse = await request(app)
+      .post(`/posts/${postIdTest}/like`)
+      .set({ authorization: "JWT " + testUser.accessToken });
+    console.log(testUser._id);
+    console.log(likeResponse.body.likes);
+
+    expect(likeResponse.status).toBe(200);
+    expect(likeResponse.body.likes.includes(testUser._id)).toBe(true);
+
+    const unlikeResponse = await request(app)
+      .post(`/posts/${postIdTest}/like`)
+      .set({ authorization: "JWT " + testUser.accessToken });
+
+    expect(unlikeResponse.status).toBe(200);
+    expect(unlikeResponse.body.likes.includes(testUser._id)).not.toBe(true);
+  });
 
   test("Test Adding new post", async () => {
     const response = await request(app)
@@ -92,13 +115,13 @@ let postId1 = "";
   test("Test get all posts after adding", async () => {
     const response = await request(app).get("/posts");
     expect(response.status).toBe(200);
-    expect(response.body.length).toBe(2);
+    expect(response.body.length).toBe(3);
   });
 
   test("Test get post by owner", async () => {
     const response = await request(app).get("/posts?owner=" + testUser._id);
     expect(response.status).toBe(200);
-    expect(response.body).toHaveLength(2);
+    expect(response.body).toHaveLength(3);
     expect(response.body[0].owner).toBe(testUser._id);
   });
 

@@ -5,6 +5,8 @@ export interface iPost {
   content: string;
   owner: string;
   image?: string;
+  likes: string[];
+  comments: mongoose.Types.ObjectId[];
 }
 
 const postSchema = new mongoose.Schema<iPost>({
@@ -19,7 +21,16 @@ const postSchema = new mongoose.Schema<iPost>({
   },
   image: {
     type: String,
-},
+  },
+  likes: {
+    type: [String],
+    default: [],
+  },
+  comments: {
+    type: [mongoose.Types.ObjectId],
+    default: [],
+    ref: "comments",
+  },
 });
 
 const postModel = mongoose.model<iPost>("posts", postSchema);
