@@ -73,7 +73,6 @@ describe("Post test suite", () => {
   });
 
   test("Test Liking and Unliking a Post", async () => {
-    // Create a post first, if it doesn't exist
     const postResponse = await request(app)
       .post("/posts")
       .set({ authorization: "JWT " + testUser.accessToken })
@@ -82,16 +81,18 @@ describe("Post test suite", () => {
     const likeResponse = await request(app)
       .post(`/posts/${postIdTest}/like`)
       .set({ authorization: "JWT " + testUser.accessToken });
+    console.log(testUser._id);
+    console.log(likeResponse.body.likes);
 
     expect(likeResponse.status).toBe(200);
-    expect(likeResponse.body.likes).toContain(testUser._id);
+    expect(likeResponse.body.likes.includes(testUser._id)).toBe(true);
 
     const unlikeResponse = await request(app)
       .post(`/posts/${postIdTest}/like`)
       .set({ authorization: "JWT " + testUser.accessToken });
 
     expect(unlikeResponse.status).toBe(200);
-    expect(unlikeResponse.body.likes).not.toContain(testUser._id);
+    expect(unlikeResponse.body.likes.includes(testUser._id)).not.toBe(true);
   });
 
   test("Test Adding new post", async () => {
