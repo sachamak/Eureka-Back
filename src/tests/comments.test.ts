@@ -32,6 +32,7 @@ let commentId = "";
 import testComment from "./CommentsTestsItems/test_comment.json";
 import testCommentUpdate from "./CommentsTestsItems/test_comment_update.json";
 import invalidComment from "./CommentsTestsItems/test_invalid_comment.json";
+import path from "path";
 describe("Comment test suite", () => {
   test("Comment test get all post", async () => {
     const response = await request(app).get("/comments");
@@ -40,14 +41,30 @@ describe("Comment test suite", () => {
   });
 
   test("Test Adding new comment", async () => {
+    const filePath = path.join(__dirname, "PostTestsItems", "avatar.png");
+
+    const response1 = await request(app)
+      .post("/posts")
+      .set({ authorization: "JWT " + testUser.accessToken })
+      .field("title", "Test Post")
+      .field("content", "This is a test post")
+      .attach("file", filePath);
+    console.log(response1.body);
     const response = await request(app)
       .post("/comments")
       .set({ authorization: "JWT " + testUser.accessToken })
-      .send(testComment);
+      .send({ ...testComment, postId: response1.body._id });
     expect(response.status).toBe(201);
     expect(response.body.content).toBe(testComment.content);
     expect(response.body.owner).toBe(testUser._id);
     commentId = response.body._id;
+    const postResponse = await request(app)
+      .get(`/posts/${response1.body._id}`)
+      .set({ authorization: "JWT " + testUser.accessToken });
+    console.log(postResponse.body.comments[0]);
+
+    expect(postResponse.status).toBe(200);
+    expect(postResponse.body.comments).toContain(commentId);
   });
 
   test("Test Adding invalid comment", async () => {
