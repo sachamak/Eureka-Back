@@ -1,20 +1,21 @@
+/** @format */
+
 import postModel, { iPost } from "../models/posts_model";
 import BaseController from "./base_controller";
 import { Request, Response } from "express";
-import fs from "fs";
-import path from "path";
 
 class PostController extends BaseController<iPost> {
   constructor() {
     super(postModel);
   }
   async create(req: Request, res: Response) {
+    const base = process.env.DOMAIN_BASE;
     try {
       const { title, content } = req.body;
       const userId = req.params.userId;
 
       const imagePath = req.file
-        ? `/public/posts/${req.file.filename}`
+        ? `${base}/public/posts/${req.file.filename}`
         : undefined;
 
       const Post = await this.model.create({
@@ -34,25 +35,18 @@ class PostController extends BaseController<iPost> {
     try {
       const { title, content } = req.body;
       const postId = req.params.id;
+      const base = process.env.DOMAIN_BASE;
+
       const post = await this.model.findById(postId);
       if (!post) {
-        return res.status(404).send({ message: "Post not found" });
+        return res.status(404).json({ message: "Post not found" });
       }
+
       let imagePath = post.image;
       if (req.file) {
-        if (post.image) {
-          const oldImagePath = path.join(
-            __dirname,
-            "..",
-            "public",
-            post.image.replace(/^.*\/public\//, "")
-          );
-          if (fs.existsSync(oldImagePath)) {
-            fs.unlinkSync(oldImagePath);
-          }
-        }
-        imagePath = `/public/posts/${req.file.filename}`;
+        imagePath = `${base}/public/posts/${req.file.filename}`;
       }
+
       const updatedPost = await this.model.findByIdAndUpdate(
         postId,
         { title, content, image: imagePath },
@@ -61,8 +55,7 @@ class PostController extends BaseController<iPost> {
 
       res.status(200).send(updatedPost);
     } catch (error) {
-      console.error("Error updating post:", error);
-      res.status(500).send({ message: "Server Error", error });
+      res.status(500).send(error);
     }
   }
 
