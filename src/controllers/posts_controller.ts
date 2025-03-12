@@ -15,8 +15,8 @@ class PostController extends BaseController<iPost> {
       const userId = req.params.userId;
 
       const imagePath = req.file
-        ? `${base}/public/posts/${req.file.filename}`
-        : undefined;
+      ? `${base}/public/posts/${req.file.filename}`
+      : undefined;
 
       const Post = await this.model.create({
         title,

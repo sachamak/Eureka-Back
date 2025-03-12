@@ -1,3 +1,5 @@
+/** @format */
+
 import request from "supertest";
 import mongoose from "mongoose";
 import postModel from "../models/posts_model";
@@ -49,7 +51,7 @@ describe("Post test suite", () => {
       .set({ authorization: "JWT " + testUser.accessToken })
       .field("title", "Test Post")
       .field("content", "This is a test post")
-      .attach("file", filePath);
+      .attach("image", filePath);
     postId1 = response.body._id;
     expect(response.statusCode).toBe(201);
     expect(response.body).toHaveProperty("image");
@@ -64,7 +66,7 @@ describe("Post test suite", () => {
       .set({ authorization: "JWT " + testUser.accessToken })
       .field("title", "Updated Post Title")
       .field("content", "Updated content")
-      .attach("file", filePath);
+      .attach("image", filePath);
 
     expect(response.statusCode).toEqual(200);
     expect(response.body.title).toEqual("Updated Post Title");

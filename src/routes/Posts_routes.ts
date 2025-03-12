@@ -1,3 +1,5 @@
+/** @format */
+
 import express from "express";
 const router = express.Router();
 import postsController from "../controllers/posts_controller";
@@ -24,14 +26,14 @@ router.post(
 router.post(
   "/",
   authMiddleware,
-  upload.single("file"),
+  upload.single("image"),
   postsController.create.bind(postsController)
 );
 
 router.put(
   "/:id",
   authMiddleware,
-  upload.single("file"),
+  upload.single("image"),
   postsController.update.bind(postsController)
 );
 
