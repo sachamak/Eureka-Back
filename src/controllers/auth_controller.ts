@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/** @format */
+
 import { NextFunction, Request, Response } from "express";
 import userModel from "../models/user_model";
 import bcrypt from "bcrypt";
@@ -12,41 +14,45 @@ type Payload = {
 
 const client = new OAuth2Client();
 const googleSignIn = async (req: Request, res: Response) => {
-  try{
+  try {
     const ticket = await client.verifyIdToken({
-    idToken: req.body.credential,
-    audience: process.env.GOOGLE_CLIENT_ID,
-  });
-  const payload = ticket.getPayload();
-  const email = payload?.email;
-  if(!email) {
-    return res.status(400).send('Invalid credentials');
-  }
-  let user =await userModel.findOne({email: email});
-  const picture = payload?.picture;
-  if(!user) {
-      user = await userModel.create({
-      email: email,
-      password: ' ',
-      imgURL: picture,
+      idToken: req.body.credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
     });
-    const tokens = generateToken(user._id);
-    if(!tokens) {
-      return res.status(500).send('server error');
+    const payload = ticket.getPayload();
+    const email = payload?.email;
+    if (!email) {
+      return res.status(400).send("Invalid credentials");
     }
-    if(user.refreshToken==null){
-      user.refreshToken = [];
+    let user = await userModel.findOne({ email: email });
+    const picture = payload?.picture;
+    if (!user) {
+      user = await userModel.create({
+        email: email,
+        password: " ",
+        imgURL: picture,
+      });
+      const tokens = generateToken(user._id);
+      if (!tokens) {
+        return res.status(500).send("server error");
+      }
+      if (user.refreshToken == null) {
+        user.refreshToken = [];
+      }
+      user.refreshToken.push(tokens.refreshToken);
+      await user.save();
+      return res.status(200).send({
+        email: user.email,
+        _id: user._id,
+        imgUrl: user.imgURL,
+        ...tokens,
+      });
     }
-    user.refreshToken.push(tokens.refreshToken);
-    await user.save()
-    return res.status(200).send({ email:user.email,_id: user._id, imgUrl: user.imgURL,...tokens});
+  } catch (err) {
+    console.log((err as Error).message);
+    return res.status(400).send((err as Error).message);
   }
-}catch (err) {
-  console.log((err as Error).message);
-  return res.status(400).send((err as Error).message);
-} 
-  
-}
+};
 
 const register = async (req: Request, res: Response) => {
   try {
@@ -268,7 +274,12 @@ const updateUser = async (req: Request, res: Response) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.params.id);
     const updateData = req.body;
-
+    if (req.body.password) {
+      const password = req.body.password;
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      updateData.password = hashedPassword;
+    }
     if (req.body.imgURL) {
       updateData.imgURL = req.body.imgURL;
     }
@@ -285,7 +296,6 @@ const updateUser = async (req: Request, res: Response) => {
     res.status(400).send(err);
   }
 };
-
 
 const deleteUser = async (req: Request, res: Response) => {
   try {

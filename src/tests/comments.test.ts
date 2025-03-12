@@ -1,3 +1,5 @@
+/** @format */
+
 import request from "supertest";
 import mongoose from "mongoose";
 import CommentModel from "../models/comments_model";
@@ -48,7 +50,7 @@ describe("Comment test suite", () => {
       .set({ authorization: "JWT " + testUser.accessToken })
       .field("title", "Test Post")
       .field("content", "This is a test post")
-      .attach("file", filePath);
+      .attach("image", filePath);
     console.log(response1.body);
     const response = await request(app)
       .post("/comments")
