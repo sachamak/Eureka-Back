@@ -15,6 +15,7 @@ class BaseController<T> {
         res.status(200).send(Item);
       } else {
         const Item = await this.model.find();
+        
         res.status(200).send(Item);
       }
     } catch (err) {
