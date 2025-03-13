@@ -1,3 +1,5 @@
+/** @format */
+
 import express from "express";
 const router = express.Router();
 import multer from "multer";
@@ -5,7 +7,7 @@ import multer from "multer";
 const base = process.env.DOMAIN_BASE + "/";
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "public/");
+    cb(null, "public/users");
   },
   filename: function (req, file, cb) {
     const ext = file.originalname
