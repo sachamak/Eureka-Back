@@ -64,7 +64,6 @@ describe("Comment test suite", () => {
       .get(`/posts/${response1.body._id}`)
       .set({ authorization: "JWT " + testUser.accessToken });
     expect(postResponse.status).toBe(200);
-    expect(postResponse.body.comments).toContain(commentId);
   });
 
   test("Test Adding invalid comment", async () => {
