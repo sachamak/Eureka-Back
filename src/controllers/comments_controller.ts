@@ -21,7 +21,7 @@ class commentsController extends BaseController<iComment> {
         req.body.postId,
         {
           $push: {
-            comments: createdComment._id,
+            comments: comment,
           },
         },
         { new: true }
@@ -43,7 +43,7 @@ class commentsController extends BaseController<iComment> {
         { new: true }
       );
       if (!updatedComment) {
-        return res.status(404).send( "Comment not found");
+        return res.status(404).send("Comment not found");
       }
       res.status(200).send(updatedComment);
     } catch (error) {
@@ -56,7 +56,7 @@ class commentsController extends BaseController<iComment> {
       const id = req.params.id;
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        res.status(400).send("Invalid comment ID format" );
+        res.status(400).send("Invalid comment ID format");
         return;
       }
 
@@ -81,7 +81,7 @@ class commentsController extends BaseController<iComment> {
         );
       }
 
-      res.status(200).send( "Comment deleted successfully" );
+      res.status(200).send("Comment deleted successfully");
     } catch (error) {
       res.status(500).send(error);
     }

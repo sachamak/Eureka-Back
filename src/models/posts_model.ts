@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import commentsModel, { iComment } from "./comments_model";
 
 export interface iPost {
   title: string;
@@ -6,7 +7,7 @@ export interface iPost {
   owner: string;
   image?: string;
   likes: string[];
-  comments: mongoose.Types.ObjectId[];
+  comments: iComment[];
 }
 
 const postSchema = new mongoose.Schema<iPost>({
@@ -27,9 +28,8 @@ const postSchema = new mongoose.Schema<iPost>({
     default: [],
   },
   comments: {
-    type: [mongoose.Types.ObjectId],
+    type: [commentsModel.schema],
     default: [],
-    ref: "comments",
   },
 });
 
