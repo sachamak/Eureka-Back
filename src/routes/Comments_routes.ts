@@ -211,7 +211,7 @@ router.delete(
 router.put(
   "/:id",
   authMiddleware,
-  commentController.updateById.bind(commentController)
+  commentController.update.bind(commentController)
 );
 
 export default router;
