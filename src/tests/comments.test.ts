@@ -12,6 +12,7 @@ type User = iUser & { accessToken?: string };
 const testUser: User = {
   email: "user1@test.com",
   password: "123456",
+  userName: "User1",
 };
 beforeAll(async () => {
   console.log("Before all tests");

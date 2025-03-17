@@ -61,10 +61,17 @@ const register = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, salt);
     let ImgUrl = req.body.imgUrl;
     if (!ImgUrl) ImgUrl = null;
+    if(await userModel.findOne({userName:req.body.userName})){
+      return res.status(400).send("User name already exists");
+    }
+    if(await userModel.findOne({email:req.body.email})){
+      return res.status(400).send("email already exists");
+    }
     const user = await userModel.create({
       email: req.body.email,
       password: hashedPassword,
       imgURL: ImgUrl,
+      userName: req.body.userName,
     });
     res.status(200).send(user);
   } catch (error) {

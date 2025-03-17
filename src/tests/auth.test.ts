@@ -1,3 +1,5 @@
+/** @format */
+
 import request from "supertest";
 import mongoose from "mongoose";
 import userModel, { iUser } from "../models/user_model";
@@ -24,6 +26,7 @@ type User = iUser & { accessToken?: string; refreshToken?: string };
 const testUser: User = {
   email: "user1@test.com",
   password: "123456",
+  userName: "User1",
 };
 describe("Auth Tests", () => {
   test("Auth test registration", async () => {
@@ -264,6 +267,7 @@ describe("Auth Tests", () => {
     const newUser = await userModel.create({
       email: "test@test.com",
       password: "123456",
+      userName: "test",
     });
     const response = await request(app).get(baseUrl + "/" + newUser._id);
     expect(response.statusCode).toBe(200);
@@ -280,6 +284,7 @@ describe("Auth Tests", () => {
     const newUser = await userModel.create({
       email: "email@test.com",
       password: "123456",
+      userName: "test2",
     });
     const response = await request(app)
       .put(baseUrl + "/" + newUser._id)
@@ -292,6 +297,7 @@ describe("Auth Tests", () => {
     const newUser = await userModel.create({
       email: "email@test.com",
       password: "123456",
+      userName: "test2",
     });
     const response = await request(app)
       .put(baseUrl + newUser._id)
@@ -303,6 +309,7 @@ describe("Auth Tests", () => {
     const newUser = await userModel.create({
       email: "email2@test.com",
       password: "123456",
+      userName: "test3",
     });
     const response = await request(app).delete(baseUrl + "/" + newUser._id);
     expect(response.statusCode).toBe(200);
