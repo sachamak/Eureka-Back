@@ -3,6 +3,7 @@
 import postModel, { iPost } from "../models/posts_model";
 import BaseController from "./base_controller";
 import { Request, Response } from "express";
+import userModel from "../models/user_model";
 
 class PostController extends BaseController<iPost> {
   constructor() {
@@ -12,7 +13,16 @@ class PostController extends BaseController<iPost> {
     const base = process.env.DOMAIN_BASE;
     try {
       const { title, content } = req.body;
+
       const userId = req.params.userId;
+    if (!userId) {
+       res.status(401).send("Unauthorized");
+    }
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+       res.status(404).send("User not found");
+    }
 
       const imagePath = req.file
       ? `${base}/public/posts/${req.file.filename}`
@@ -21,7 +31,7 @@ class PostController extends BaseController<iPost> {
       const Post = await this.model.create({
         title,
         content,
-        owner: userId,
+        owner: user?.userName,
         image: imagePath,
       });
       console.log(Post);
