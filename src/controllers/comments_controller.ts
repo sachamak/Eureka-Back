@@ -4,6 +4,7 @@ import BaseController from "./base_controller";
 import { Request, Response } from "express";
 import PostModel from "../models/posts_model";
 import mongoose from "mongoose";
+import userModel from "../models/user_model";
 
 class commentsController extends BaseController<iComment> {
   constructor() {
@@ -13,10 +14,17 @@ class commentsController extends BaseController<iComment> {
   async create(req: Request, res: Response) {
     try {
       const userId = req.params.userId;
-      const comment = { ...req.body, owner: userId };
+      if (!userId) {
+        res.status(401).send("Unauthorized");
+      }
+      const user = await userModel.findById(userId);
+      if (!user) {
+        res.status(404).send("User not found");
+      }
+      const comment = { ...req.body, owner: user?.userName };
       req.body = comment;
       const createdComment = await this.model.create(comment);
-            await PostModel.findByIdAndUpdate(
+      await PostModel.findByIdAndUpdate(
         req.body.postId,
         {
           $push: {
@@ -54,8 +62,8 @@ class commentsController extends BaseController<iComment> {
         { "comments._id": updatedComment._id },
         {
           $set: {
-            "comments.$.content": updateData.content
-          }
+            "comments.$.content": updateData.content,
+          },
         }
       );
       res.status(200).send(updatedComment);
@@ -64,7 +72,6 @@ class commentsController extends BaseController<iComment> {
       res.status(500).send(err);
     }
   }
-  
 
   async deleteById(req: Request, res: Response): Promise<void> {
     try {
@@ -85,8 +92,8 @@ class commentsController extends BaseController<iComment> {
           postId,
           {
             $pull: {
-              comments: { _id: new mongoose.Types.ObjectId(id) }
-            }
+              comments: { _id: new mongoose.Types.ObjectId(id) },
+            },
           },
           { new: true }
         );

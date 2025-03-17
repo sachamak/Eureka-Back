@@ -106,7 +106,7 @@ describe("Post test suite", () => {
     expect(response.status).toBe(201);
     expect(response.body.title).toBe(testPost.title);
     expect(response.body.content).toBe(testPost.content);
-    expect(response.body.owner).toBe(testUser._id);
+    expect(response.body.owner).toBe(testUser.userName);
     postId = response.body._id;
   });
 
@@ -122,10 +122,12 @@ describe("Post test suite", () => {
   });
 
   test("Test get post by owner", async () => {
-    const response = await request(app).get("/posts?owner=" + testUser._id);
+    const response = await request(app).get(
+      "/posts?owner=" + testUser.userName
+    );
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(3);
-    expect(response.body[0].owner).toBe(testUser._id);
+    expect(response.body[0].owner).toBe(testUser.userName);
   });
 
   test("Test get post by owner fail", async () => {
@@ -158,7 +160,7 @@ describe("Post test suite", () => {
     expect(response.status).toBe(200);
     expect(response.body.title).toBe(testPostUpdate.title);
     expect(response.body.content).toBe(testPostUpdate.content);
-    expect(response.body.owner).toBe(testUser._id);
+    expect(response.body.owner).toBe(testUser.userName);
   });
 
   test("Test Delete post by id", async () => {

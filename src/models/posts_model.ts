@@ -8,30 +8,35 @@ export interface iPost {
   image?: string;
   likes: string[];
   comments: iComment[];
-}
+  createdAt?: Date;
+  updatedAt?: Date;
+} 
 
-const postSchema = new mongoose.Schema<iPost>({
-  title: {
-    type: String,
-    required: true,
+const postSchema = new mongoose.Schema<iPost>(
+  {
+    title: {
+      type: String,
+      required: true,
+    },
+    content: String,
+    owner: {
+      type: String,
+      required: true,
+    },
+    image: {
+      type: String,
+    },
+    likes: {
+      type: [String],
+      default: [],
+    },
+    comments: {
+      type: [commentsModel.schema],
+      default: [],
+    },
   },
-  content: String,
-  owner: {
-    type: String,
-    required: true,
-  },
-  image: {
-    type: String,
-  },
-  likes: {
-    type: [String],
-    default: [],
-  },
-  comments: {
-    type: [commentsModel.schema],
-    default: [],
-  },
-});
+  { timestamps: true }
+);
 
 const postModel = mongoose.model<iPost>("posts", postSchema);
 
