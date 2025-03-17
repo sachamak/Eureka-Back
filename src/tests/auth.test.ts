@@ -99,12 +99,12 @@ describe("Auth Tests", () => {
       .send({
         title: "test title",
         content: "test content",
-        owner: testUser._id,
+        owner: testUser.userName,
       });
     expect(response2.statusCode).toBe(201);
     expect(response2.body.title).toBe("test title");
     expect(response2.body.content).toBe("test content");
-    expect(response2.body.owner).toBe(testUser._id);
+    expect(response2.body.owner).toBe(testUser.userName);
   });
 
   test("Auth test refresh wrong token", async () => {
