@@ -10,6 +10,7 @@ import authRoutes from "./routes/auth_routes";
 import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
 import fileRoutes from "./routes/file_routes";
+import chatRoutes from "./routes/chatbot_routes";
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -25,6 +26,7 @@ app.use("/comments", commentsRoutes);
 app.use("/auth", authRoutes);
 app.use("/file", fileRoutes);
 app.use("/public", express.static("public"));
+app.use("/chatbot", chatRoutes);
 
 const options = {
   definition: {
