@@ -24,7 +24,7 @@ class PostController extends BaseController<iPost> {
         owner: userId,
         image: imagePath,
       });
-
+      console.log(Post);
       res.status(201).send(Post);
     } catch (error) {
       res.status(400).send(error);
