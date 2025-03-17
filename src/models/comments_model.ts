@@ -5,6 +5,8 @@ export interface iComment {
   content: string;
   postId: string;
   owner: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const commentsSchema = new mongoose.Schema<iComment>({
@@ -20,7 +22,7 @@ const commentsSchema = new mongoose.Schema<iComment>({
     type: String,
     required: true,
   },
-});
+}, { timestamps: true });
 
 const commentsModel = mongoose.model<iComment>("comments", commentsSchema);
 
