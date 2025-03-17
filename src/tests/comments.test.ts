@@ -59,7 +59,7 @@ describe("Comment test suite", () => {
       .send({ ...testComment, postId: response1.body._id });
     expect(response.status).toBe(201);
     expect(response.body.content).toBe(testComment.content);
-    expect(response.body.owner).toBe(testUser._id);
+    expect(response.body.owner).toBe(testUser.userName);
     commentId = response.body._id;
     const postResponse = await request(app)
       .get(`/posts/${response1.body._id}`)
@@ -79,10 +79,12 @@ describe("Comment test suite", () => {
   });
 
   test("Test get comment by owner", async () => {
-    const response = await request(app).get("/comments?owner=" + testUser._id);
+    const response = await request(app).get(
+      "/comments?owner=" + testUser.userName
+    );
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(response.body[0].owner).toBe(testUser._id);
+    expect(response.body[0].owner).toBe(testUser.userName);
   });
 
   test("Test get comments by owner fail", async () => {
@@ -95,7 +97,7 @@ describe("Comment test suite", () => {
   test("Test get comments by id", async () => {
     const response = await request(app).get("/comments/" + commentId);
     expect(response.status).toBe(200);
-    expect(response.body.owner).toBe(testUser._id);
+    expect(response.body.owner).toBe(testUser.userName);
     expect(response.body.content).toBe("test content");
     expect(response.body._id).toBe(commentId);
   });

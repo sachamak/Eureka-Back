@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+
 /** @format */
 
 import { NextFunction, Request, Response } from "express";
@@ -7,6 +9,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { OAuth2Client } from "google-auth-library";
+import postModel from "../models/posts_model";
+import commentModel from "../models/comments_model";
 
 type Payload = {
   _id: string;
@@ -61,10 +65,10 @@ const register = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, salt);
     let ImgUrl = req.body.imgUrl;
     if (!ImgUrl) ImgUrl = null;
-    if(await userModel.findOne({userName:req.body.userName})){
+    if (await userModel.findOne({ userName: req.body.userName })) {
       return res.status(400).send("User name already exists");
     }
-    if(await userModel.findOne({email:req.body.email})){
+    if (await userModel.findOne({ email: req.body.email })) {
       return res.status(400).send("email already exists");
     }
     const user = await userModel.create({
@@ -281,24 +285,56 @@ const updateUser = async (req: Request, res: Response) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.params.id);
     const updateData = req.body;
+
     if (req.body.password) {
-      const password = req.body.password;
       const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      updateData.password = hashedPassword;
-    }
-    if (req.body.imgURL) {
-      updateData.imgURL = req.body.imgURL;
+      updateData.password = await bcrypt.hash(req.body.password, salt);
     }
 
-    const user = await userModel.findByIdAndUpdate(userId, updateData, {
-      new: true,
-    });
+    const user = await userModel.findById(userId);
     if (!user) {
-      res.status(404).send("User not found");
-      return;
+      return res.status(404).send("User not found");
     }
-    res.status(200).send(user);
+
+    if (req.body.userName && req.body.userName !== user.userName) {
+      const oldUserName = user.userName;
+      const newUserName = req.body.userName;
+
+      const existingUser = await userModel.findOne({ userName: newUserName });
+      if (existingUser) {
+        return res.status(400).send("User name already exists");
+      }
+
+      await postModel.updateMany(
+        { userName: oldUserName }, 
+        { userName: newUserName }
+      );
+      
+      await postModel.updateMany(
+        { owner: oldUserName }, 
+        { owner: newUserName }
+      );
+      
+      await commentModel.updateMany(
+        { userName: oldUserName }, 
+        { userName: newUserName }
+      );
+      
+      await commentModel.updateMany(
+        { owner: oldUserName }, 
+        { owner: newUserName }
+      );
+
+      await postModel.updateMany(
+        { "comments.owner": oldUserName },
+        { $set: { "comments.$[elem].owner": newUserName } },
+        { arrayFilters: [{ "elem.owner": oldUserName }], multi: true }
+      );
+    }
+
+    const updatedUser = await userModel.findByIdAndUpdate(userId, updateData, { new: true });
+
+    res.status(200).send(updatedUser);
   } catch (err) {
     res.status(400).send(err);
   }
