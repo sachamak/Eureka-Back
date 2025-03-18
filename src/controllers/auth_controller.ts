@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-
 /** @format */
 
 import { NextFunction, Request, Response } from "express";
@@ -306,22 +305,12 @@ const updateUser = async (req: Request, res: Response) => {
       }
 
       await postModel.updateMany(
-        { userName: oldUserName }, 
-        { userName: newUserName }
-      );
-      
-      await postModel.updateMany(
-        { owner: oldUserName }, 
+        { owner: oldUserName },
         { owner: newUserName }
       );
-      
+
       await commentModel.updateMany(
-        { userName: oldUserName }, 
-        { userName: newUserName }
-      );
-      
-      await commentModel.updateMany(
-        { owner: oldUserName }, 
+        { owner: oldUserName },
         { owner: newUserName }
       );
 
@@ -332,7 +321,9 @@ const updateUser = async (req: Request, res: Response) => {
       );
     }
 
-    const updatedUser = await userModel.findByIdAndUpdate(userId, updateData, { new: true });
+    const updatedUser = await userModel.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    });
 
     res.status(200).send(updatedUser);
   } catch (err) {
@@ -343,8 +334,18 @@ const updateUser = async (req: Request, res: Response) => {
 const deleteUser = async (req: Request, res: Response) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.params.id);
-    const user = await userModel.findByIdAndDelete(userId);
-    if (user) {
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    await postModel.deleteMany({ owner: user.userName });
+    await commentModel.deleteMany({ owner: user.userName });
+    await postModel.updateMany(
+      {},
+      { $pull: { comments: { owner: user.userName } } }
+    );
+    const user1 = await userModel.findByIdAndDelete(userId);
+    if (user1) {
       res.status(200).send("User deleted");
     }
   } catch (err) {
