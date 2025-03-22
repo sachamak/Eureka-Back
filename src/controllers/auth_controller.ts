@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 /** @format */
 
 import { NextFunction, Request, Response } from "express";
@@ -34,23 +33,26 @@ const googleSignIn = async (req: Request, res: Response) => {
         email: email,
         password: " ",
         imgURL: picture,
-      });
-      const tokens = generateToken(user._id);
-      if (!tokens) {
-        return res.status(500).send("server error");
-      }
-      if (user.refreshToken == null) {
-        user.refreshToken = [];
-      }
-      user.refreshToken.push(tokens.refreshToken);
-      await user.save();
-      return res.status(200).send({
-        email: user.email,
-        _id: user._id,
-        imgUrl: user.imgURL,
-        ...tokens,
+        userName: email,
       });
     }
+    const tokens = generateToken(user._id);
+    if (!tokens) {
+      return res.status(500).send("server error");
+    }
+    if (user.refreshToken == null) {
+      user.refreshToken = [];
+    }
+    user.refreshToken.push(tokens.refreshToken);
+    await user.save();
+
+    return res.status(200).send({
+      email: user.email,
+      _id: user._id,
+      imgUrl: user.imgURL,
+      userName: user.userName,
+      ...tokens,
+    });
   } catch (err) {
     console.log((err as Error).message);
     return res.status(400).send((err as Error).message);
