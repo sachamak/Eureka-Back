@@ -6,8 +6,8 @@ import { authMiddleware } from "../controllers/auth_controller";
 /**
  * @swagger
  * tags:
- *   - name: Comments
- *     description: API for managing comments
+ *   name: Comments
+ *   description: API for managing comments
  */
 
 /**
@@ -38,7 +38,6 @@ import { authMiddleware } from "../controllers/auth_controller";
  *         comment: This is a comment
  *         owner: 5f4f5f4f5f4f5f4f5f4f5f4
  *         postId: 5f4f5f4f5f4f5f4f5f4f5f4
- *
  */
 
 /**
@@ -105,17 +104,17 @@ router.get("/:id", commentController.getById.bind(commentController));
  *             properties:
  *               comment:
  *                 type: string
- *                 description: The comment of the post
+ *                 description: The text content of the comment
  *               owner:
  *                 type: string
- *                 description: The content of the post
+ *                 description: The ID of the user creating the comment
  *               postId:
  *                 type: string
  *                 description: The ID of the post the comment belongs to
  *             required:
- *               - title
- *               - content
+ *               - comment
  *               - owner
+ *               - postId
  *     responses:
  *       201:
  *         description: Comment created successfully
@@ -123,7 +122,6 @@ router.get("/:id", commentController.getById.bind(commentController));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Comment'
- *
  *       400:
  *         description: Invalid input data
  *       500:
@@ -187,19 +185,21 @@ router.delete(
  *         application/json:
  *           schema:
  *             type: object
+ *             properties:
+ *               comment:
+ *                 type: string
+ *                 description: The updated text content of the comment
+ *             required:
+ *               - comment
  *             example:
- *               content: "Updated comment text"
- *             additionalProperties: true
+ *               comment: "Updated comment text"
  *     responses:
  *       200:
  *         description: Comment updated successfully
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               example:
- *                 id: "60d21b4677d0d8992e610c95"
- *                 content: "Updated comment text"
+ *               $ref: '#/components/schemas/Comment'
  *       400:
  *         description: Bad request, invalid or missing parameters
  *       404:
@@ -207,7 +207,6 @@ router.delete(
  *       500:
  *         description: Internal server error
  */
-
 router.put(
   "/:id",
   authMiddleware,

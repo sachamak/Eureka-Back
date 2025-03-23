@@ -29,12 +29,21 @@ import authController from "../controllers/auth_controller";
  *         - email
  *         - password
  *       properties:
+ *         _id:
+ *           type: string
+ *           description: The auto-generated user ID
  *         email:
  *           type: string
  *           description: The user email
  *         password:
  *           type: string
  *           description: The user password
+ *         name:
+ *           type: string
+ *           description: The user's name
+ *         profilePic:
+ *           type: string
+ *           description: URL to user's profile picture
  *       example:
  *         email: 'test@gmail.com'
  *         password: '12345678'
@@ -44,7 +53,7 @@ import authController from "../controllers/auth_controller";
  * @swagger
  * /auth/register:
  *   post:
- *     summary: registers a new user
+ *     summary: Register a new user
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -53,15 +62,67 @@ import authController from "../controllers/auth_controller";
  *           schema:
  *             $ref: '#/components/schemas/User'
  *     responses:
- *       200:
- *         description: The new user
+ *       201:
+ *         description: User registered successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *                 _id:
+ *                   type: string
+ *       400:
+ *         description: Invalid input or email already exists
+ *       500:
+ *         description: Server error
  */
 router.post("/register", authController.register);
 
+/**
+ * @swagger
+ * /auth/google:
+ *   post:
+ *     summary: Sign in or register with Google
+ *     tags: [Auth]
+ *     description: Authenticate user with Google credentials
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - idToken
+ *             properties:
+ *               idToken:
+ *                 type: string
+ *                 description: Google ID token
+ *     responses:
+ *       200:
+ *         description: Successfully authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                 refreshToken:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                 _id:
+ *                   type: string
+ *                   example: 678662a4880602a32720075c
+ *       400:
+ *         description: Invalid Google token
+ *       500:
+ *         description: Server error
+ */
 router.post("/google", authController.googleSignIn);
 
 /**
@@ -77,7 +138,15 @@ router.post("/google", authController.googleSignIn);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/User'
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Successful login
@@ -171,11 +240,13 @@ router.post("/logout", authController.logout);
 
 /**
  * @swagger
- * /users/{id}:
+ * /auth/{id}:
  *   get:
  *     summary: Get user by ID
  *     tags: [Auth]
  *     description: Retrieve a user by their ID.
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -190,6 +261,8 @@ router.post("/logout", authController.logout);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: User not found
  *       400:
@@ -199,11 +272,13 @@ router.get("/:id", authController.getUserById);
 
 /**
  * @swagger
- * /users:
+ * /auth:
  *   get:
  *     summary: Get all users
  *     tags: [Auth]
  *     description: Retrieve a list of all users.
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: A list of users
@@ -213,6 +288,8 @@ router.get("/:id", authController.getUserById);
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
  *       400:
  *         description: Bad request
  */
@@ -220,11 +297,13 @@ router.get("/", authController.getAllUsers);
 
 /**
  * @swagger
- * /users/{id}:
+ * /auth/{id}:
  *   put:
  *     summary: Update user by ID
  *     tags: [Auth]
  *     description: Update a user's information by their ID.
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -237,7 +316,14 @@ router.get("/", authController.getAllUsers);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/User'
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               profilePic:
+ *                 type: string
  *     responses:
  *       200:
  *         description: User updated successfully
@@ -245,6 +331,8 @@ router.get("/", authController.getAllUsers);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: User not found
  *       400:
@@ -254,11 +342,13 @@ router.put("/:id", authController.updateUser);
 
 /**
  * @swagger
- * /users/{id}:
+ * /auth/{id}:
  *   delete:
  *     summary: Delete user by ID
  *     tags: [Auth]
  *     description: Delete a user by their ID.
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -269,6 +359,8 @@ router.put("/:id", authController.updateUser);
  *     responses:
  *       200:
  *         description: User deleted successfully
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: User not found
  *       400:

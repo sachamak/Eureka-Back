@@ -26,8 +26,10 @@ const googleSignIn = async (req: Request, res: Response) => {
     if (!email) {
       return res.status(400).send("Invalid credentials");
     }
+
     let user = await userModel.findOne({ email: email });
     const picture = payload?.picture;
+
     if (!user) {
       user = await userModel.create({
         email: email,
@@ -35,29 +37,30 @@ const googleSignIn = async (req: Request, res: Response) => {
         imgURL: picture,
         userName: email,
       });
+      
     }
     const tokens = generateToken(user._id);
-    if (!tokens) {
-      return res.status(500).send("server error");
-    }
-    if (user.refreshToken == null) {
-      user.refreshToken = [];
-    }
-    user.refreshToken.push(tokens.refreshToken);
-    await user.save();
-
-    return res.status(200).send({
-      email: user.email,
-      _id: user._id,
-      imgUrl: user.imgURL,
-      userName: user.userName,
-      ...tokens,
-    });
+      if (!tokens) {
+        return res.status(500).send("server error");
+      }
+      if (user.refreshToken == null) {
+        user.refreshToken = [];
+      }
+      user.refreshToken.push(tokens.refreshToken);
+      await user.save();
+      return res.status(200).send({
+        email: user.email,
+        _id: user._id,
+        imgUrl: user.imgURL,
+        userName: user.userName,
+        ...tokens,
+      });
   } catch (err) {
-    console.log((err as Error).message);
+    console.error("Google sign-in error:", (err as Error).message);
     return res.status(400).send((err as Error).message);
   }
 };
+
 
 const register = async (req: Request, res: Response) => {
   try {
@@ -122,7 +125,8 @@ const login = async (req: Request, res: Response) => {
       res.status(500).send("server error");
       return;
     }
-
+    console.log(user.refreshToken);
+    console.log(tokens.refreshToken);
     if (user.refreshToken == null) {
       user.refreshToken = [];
     }
@@ -322,7 +326,7 @@ const updateUser = async (req: Request, res: Response) => {
         { arrayFilters: [{ "elem.owner": oldUserName }], multi: true }
       );
     }
-
+    console.log(updateData);
     const updatedUser = await userModel.findByIdAndUpdate(userId, updateData, {
       new: true,
     });
