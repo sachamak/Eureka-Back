@@ -56,7 +56,6 @@ const googleSignIn = async (req: Request, res: Response) => {
         ...tokens,
       });
   } catch (err) {
-    console.error("Google sign-in error:", (err as Error).message);
     return res.status(400).send((err as Error).message);
   }
 };

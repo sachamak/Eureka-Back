@@ -102,18 +102,14 @@ router.get("/:id", commentController.getById.bind(commentController));
  *           schema:
  *             type: object
  *             properties:
- *               comment:
+ *               content:
  *                 type: string
  *                 description: The text content of the comment
- *               owner:
- *                 type: string
- *                 description: The ID of the user creating the comment
  *               postId:
  *                 type: string
  *                 description: The ID of the post the comment belongs to
  *             required:
- *               - comment
- *               - owner
+ *               - content
  *               - postId
  *     responses:
  *       201:
@@ -186,13 +182,13 @@ router.delete(
  *           schema:
  *             type: object
  *             properties:
- *               comment:
+ *               content:
  *                 type: string
  *                 description: The updated text content of the comment
  *             required:
  *               - comment
  *             example:
- *               comment: "Updated comment text"
+ *               content: "Updated comment text"
  *     responses:
  *       200:
  *         description: Comment updated successfully

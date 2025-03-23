@@ -53,32 +53,42 @@ import authController from "../controllers/auth_controller";
  * @swagger
  * /auth/register:
  *   post:
- *     summary: Register a new user
- *     tags: [Auth]
+ *     summary: User registration
+ *     description: Register a new user with email, password, and username.
+ *     tags:
+ *       - Auth
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/User'
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: "newuser@example.com"
+ *               password:
+ *                 type: string
+ *                 example: "password123"
+ *               userName:
+ *                 type: string
+ *                 example: "newuser123"
  *     responses:
- *       201:
- *         description: User registered successfully
+ *       200:
+ *         description: User successfully registered
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 accessToken:
+ *                 id:
  *                   type: string
- *                 refreshToken:
+ *                 email:
  *                   type: string
- *                 _id:
+ *                 userName:
  *                   type: string
  *       400:
- *         description: Invalid input or email already exists
- *       500:
- *         description: Server error
+ *         description: Registration error
  */
 router.post("/register", authController.register);
 
@@ -130,7 +140,7 @@ router.post("/google", authController.googleSignIn);
  * /auth/login:
  *   post:
  *     summary: User login
- *     description: Authenticate user and return tokens
+ *     description: Authenticate user with email and password.
  *     tags:
  *       - Auth
  *     requestBody:
@@ -139,14 +149,13 @@ router.post("/google", authController.googleSignIn);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - email
- *               - password
  *             properties:
  *               email:
  *                 type: string
+ *                 example: "newuser@example.com"
  *               password:
  *                 type: string
+ *                 example: "password123"
  *     responses:
  *       200:
  *         description: Successful login
@@ -155,19 +164,19 @@ router.post("/google", authController.googleSignIn);
  *             schema:
  *               type: object
  *               properties:
- *                 accessToken:
+ *                 token:
  *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
- *                 refreshToken:
- *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
- *                 _id:
- *                   type: string
- *                   example: 678662a4880602a32720075c
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     userName:
+ *                       type: string
  *       400:
- *         description: Invalid credentials or request
- *       500:
- *         description: Server error
+ *         description: Invalid credentials
  */
 router.post("/login", authController.login);
 
@@ -320,9 +329,9 @@ router.get("/", authController.getAllUsers);
  *             properties:
  *               email:
  *                 type: string
- *               name:
+ *               userName:
  *                 type: string
- *               profilePic:
+ *               imgURL:
  *                 type: string
  *     responses:
  *       200:
