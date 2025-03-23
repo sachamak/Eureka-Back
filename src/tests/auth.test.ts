@@ -425,7 +425,6 @@ describe("Auth Tests", () => {
       .send({ password: "newpassword" });
     expect(response.statusCode).toBe(200);
     
-    // Verify password was changed by logging in
     const loginResponse = await request(app)
       .post(baseUrl + "/login")
       .send({
@@ -445,7 +444,6 @@ describe("Auth Tests", () => {
   });
 
   test("Update user with existing username", async () => {
-    // Create two users
     const user1 = await userModel.create({
       email: "user1update@test.com",
       password: "123456",
@@ -458,7 +456,6 @@ describe("Auth Tests", () => {
       userName: "user2update",
     });
     
-    // Try to update user1's username to user2's username
     const response = await request(app)
       .put(baseUrl + "/" + user1._id)
       .send({ userName: "user2update" });
@@ -468,14 +465,12 @@ describe("Auth Tests", () => {
   });
   
   test("Update username should update username in related posts and comments", async () => {
-    // Create a user
     const user = await userModel.create({
       email: "postowner@test.com",
       password: "123456",
       userName: "oldusername",
     });
     
-    // Create a post and comment with this username
     const post = await postsModel.create({
       title: "Test post",
       content: "Test content",
@@ -488,18 +483,15 @@ describe("Auth Tests", () => {
       postId: post._id
     });
     
-    // Update username
     const response = await request(app)
       .put(baseUrl + "/" + user._id)
       .send({ userName: "newusername" });
     
     expect(response.statusCode).toBe(200);
     
-    // Check if posts were updated
     const updatedPost = await postsModel.findById(post._id);
     expect(updatedPost?.owner).toBe("newusername");
     
-    // Check if comments were updated
     const updatedComment = await commentsModel.findOne({ postId: post._id });
     expect(updatedComment?.owner).toBe("newusername");
   });
@@ -512,21 +504,18 @@ describe("Auth Tests", () => {
   });
 
   test("Delete user", async () => {
-    // Create a user with posts and comments
     const newUser = await userModel.create({
       email: "todelete@test.com",
       password: "123456",
       userName: "userToDelete",
     });
     
-    // Create a post owned by this user
     const post = await postsModel.create({
       title: "Post to delete",
       content: "Content to delete",
       owner: "userToDelete"
     });
     
-    // Create a comment owned by this user
     await commentsModel.create({
       content: "Comment to delete",
       owner: "userToDelete",
@@ -537,15 +526,12 @@ describe("Auth Tests", () => {
     expect(response.statusCode).toBe(200);
     expect(response.text).toBe("User deleted");
     
-    // Verify user is deleted
     const deletedUser = await userModel.findById(newUser._id);
     expect(deletedUser).toBeNull();
     
-    // Verify user's posts are deleted
     const deletedPosts = await postsModel.find({ owner: "userToDelete" });
     expect(deletedPosts.length).toBe(0);
     
-    // Verify user's comments are deleted
     const deletedComments = await commentsModel.find({ owner: "userToDelete" });
     expect(deletedComments.length).toBe(0);
   });
@@ -573,7 +559,6 @@ describe("Auth Tests", () => {
 
 describe("Edge Cases and Error Handling", () => {
   test("Get all users with database error", async () => {
-    // Mock database error
     jest.spyOn(userModel, 'find').mockImplementationOnce(() => {
       throw new Error('Database error');
     });
@@ -583,7 +568,6 @@ describe("Edge Cases and Error Handling", () => {
   });
   
   test("Get user by ID with database error", async () => {
-    // Mock database error
     jest.spyOn(userModel, 'findById').mockImplementationOnce(() => {
       throw new Error('Database error');
     });
@@ -593,7 +577,6 @@ describe("Edge Cases and Error Handling", () => {
   });
   
   test("Update user with database error", async () => {
-    // Mock database error
     jest.spyOn(userModel, 'findById').mockImplementationOnce(() => {
       throw new Error('Database error');
     });
@@ -606,7 +589,6 @@ describe("Edge Cases and Error Handling", () => {
   });
   
   test("Delete user with database error", async () => {
-    // Mock database error
     jest.spyOn(userModel, 'findById').mockImplementationOnce(() => {
       throw new Error('Database error');
     });
