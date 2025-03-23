@@ -8,6 +8,7 @@
     "testPost": "tsc && jest --detectOpenHandles --forceExit post.test.ts",
     "testComments": "tsc && jest --detectOpenHandles --forceExit --coverage comments.test.ts",
     "testFile": "tsc && jest --detectOpenHandles --forceExit file.test.ts",
+    "testChatbot": "tsc && jest --detectOpenHandles --forceExit file.chatbot.ts",
     "start": "tsc && node dist/src/index.js",
     "dev": "nodemon ./src/index.ts",
     "lint": "eslint . --ext .ts",
