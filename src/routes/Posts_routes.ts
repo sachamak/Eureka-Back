@@ -17,12 +17,90 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+/**
+ * @swagger
+ * /posts/{id}/like:
+ *   post:
+ *     summary: Like or unlike a post
+ *     description: Add or remove a like from a post by the authenticated user
+ *     tags:
+ *       - Posts
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post to like/unlike
+ *     responses:
+ *       200:
+ *         description: Like added or removed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Like added to post
+ *       401:
+ *         description: Unauthorized, authentication required
+ *       404:
+ *         description: Post not found
+ *       500:
+ *         description: Server error
+ */
 router.post(
   "/:id/like",
   authMiddleware,
   postsController.likePost.bind(postsController)
 );
 
+/**
+ * @swagger
+ * /posts:
+ *   post:
+ *     summary: Create a new post
+ *     description: Create a new post with optional image upload
+ *     tags:
+ *       - Posts
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 description: The title of the post
+ *               content:
+ *                 type: string
+ *                 description: The content of the post
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *                 description: Image file to upload
+ *             required:
+ *               - title
+ *     responses:
+ *       201:
+ *         description: Post created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Post'
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized, authentication required
+ *       500:
+ *         description: Server error
+ */
 router.post(
   "/",
   authMiddleware,
@@ -30,6 +108,56 @@ router.post(
   postsController.create.bind(postsController)
 );
 
+/**
+ * @swagger
+ * /posts/{id}:
+ *   put:
+ *     summary: Update a post by ID
+ *     description: Update an existing post by its ID with the provided data and optional image
+ *     tags:
+ *       - Posts
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 description: Updated title of the post
+ *               content:
+ *                 type: string
+ *                 description: Updated content of the post
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *                 description: New image file to upload
+ *     responses:
+ *       200:
+ *         description: Post updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Post'
+ *       400:
+ *         description: Bad request, invalid or missing parameters
+ *       401:
+ *         description: Unauthorized, authentication required
+ *       404:
+ *         description: Post not found
+ *       500:
+ *         description: Server error
+ */
 router.put(
   "/:id",
   authMiddleware,
