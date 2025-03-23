@@ -37,7 +37,9 @@ const googleSignIn = async (req: Request, res: Response) => {
         imgURL: picture,
         userName: email,
       });
-      const tokens = generateToken(user._id);
+      
+    }
+    const tokens = generateToken(user._id);
       if (!tokens) {
         return res.status(500).send("server error");
       }
@@ -50,9 +52,9 @@ const googleSignIn = async (req: Request, res: Response) => {
         email: user.email,
         _id: user._id,
         imgUrl: user.imgURL,
+        userName: user.userName,
         ...tokens,
       });
-    }
   } catch (err) {
     console.error("Google sign-in error:", (err as Error).message);
     return res.status(400).send((err as Error).message);
