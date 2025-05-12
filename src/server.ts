@@ -6,13 +6,11 @@ import dotenv from "dotenv";
 dotenv.config();
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
-import postsRoutes from "./routes/Posts_routes";
-import commentsRoutes from "./routes/Comments_routes";
 import authRoutes from "./routes/auth_routes";
 import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
 import fileRoutes from "./routes/file_routes";
-import chatRoutes from "./routes/chatbot_routes";
+
 //import cors from "cors";
 //import path from "path";
 
@@ -37,12 +35,9 @@ app.use(
 */
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use("/posts", postsRoutes);
-app.use("/comments", commentsRoutes);
 app.use("/auth", authRoutes);
 app.use("/file", fileRoutes);
 app.use("/public", express.static("public"));
-app.use("/chatbot", chatRoutes);
 /*
 const frontPath = path.resolve("front");
 app.use(express.static(frontPath));
