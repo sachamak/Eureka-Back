@@ -7,8 +7,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { OAuth2Client } from "google-auth-library";
-import postModel from "../models/posts_model";
-import commentModel from "../models/comments_model";
 
 type Payload = {
   _id: string;
@@ -301,30 +299,13 @@ const updateUser = async (req: Request, res: Response) => {
     }
 
     if (req.body.userName && req.body.userName !== user.userName) {
-      const oldUserName = user.userName;
       const newUserName = req.body.userName;
-
       const existingUser = await userModel.findOne({ userName: newUserName });
       if (existingUser) {
         return res.status(400).send("User name already exists");
       }
-
-      await postModel.updateMany(
-        { owner: oldUserName },
-        { owner: newUserName }
-      );
-
-      await commentModel.updateMany(
-        { owner: oldUserName },
-        { owner: newUserName }
-      );
-
-      await postModel.updateMany(
-        { "comments.owner": oldUserName },
-        { $set: { "comments.$[elem].owner": newUserName } },
-        { arrayFilters: [{ "elem.owner": oldUserName }], multi: true }
-      );
     }
+
     console.log(updateData);
     const updatedUser = await userModel.findByIdAndUpdate(userId, updateData, {
       new: true,
@@ -343,12 +324,7 @@ const deleteUser = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(404).send("User not found");
     }
-    await postModel.deleteMany({ owner: user.userName });
-    await commentModel.deleteMany({ owner: user.userName });
-    await postModel.updateMany(
-      {},
-      { $pull: { comments: { owner: user.userName } } }
-    );
+
     const user1 = await userModel.findByIdAndDelete(userId);
     if (user1) {
       res.status(200).send("User deleted");
