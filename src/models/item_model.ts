@@ -1,27 +1,41 @@
-/**
- * eslint-disable @typescript-eslint/no-explicit-any
- *
- * @format
- */
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose from "mongoose";
 
 export interface IItem {
   _id?: string;
   userId: string;
   imageUrl: string;
-  itemType: "lost" | "found";
+  itemType: 'lost' | 'found';
   description?: string;
-  location?:
-    | {
-        lat: number;
-        lng: number;
-      }
-    | string;
+  location?: {
+    lat?: number;
+    lng?: number;
+  } | string;
   category?: string;
   timestamp?: Date;
   ownerName?: string;
   ownerEmail?: string;
+  visionApiData?: {
+    labels?: string[];
+    objects?: Array<{
+      name: string;
+      score: number;
+      boundingBox?: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      }
+    }>;
+    colors?: Array<{
+      color: string;
+      score: number;
+    }>;
+    imageProperties?: any;
+  };
+  matchedItemId?: string;
+  isResolved?: boolean;
+  eventDate: Date;
 }
 
 const itemSchema = new mongoose.Schema<IItem>(
@@ -36,7 +50,7 @@ const itemSchema = new mongoose.Schema<IItem>(
     },
     itemType: {
       type: String,
-      enum: ["lost", "found"],
+      enum: ['lost', 'found'],
       required: true,
     },
     description: {
@@ -54,10 +68,38 @@ const itemSchema = new mongoose.Schema<IItem>(
     ownerEmail: {
       type: String,
     },
+    visionApiData: {
+      labels: [String],
+      objects: [{
+        name: String,
+        score: Number,
+        boundingBox: {
+          x: Number,
+          y: Number,
+          width: Number,
+          height: Number,
+        }
+      }],
+      colors: [{
+        color: String,
+        score: Number,
+      }],
+      imageProperties: mongoose.Schema.Types.Mixed,
+    },
+    matchedItemId: {
+      type: String,
+    },
+    isResolved: {
+      type: Boolean,
+      default: false,
+    },
+    eventDate: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
 
 const itemModel = mongoose.model<IItem>("items", itemSchema);
 
-export default itemModel;
+export default itemModel; 
