@@ -3,8 +3,7 @@
 import { Request, Response } from "express";
 import itemModel, { IItem } from "../models/item_model";
 import userModel from "../models/user_model";
-
-
+import visionService from "../services/vision-service";
 
 const uploadItem = async (req: Request, res: Response) => {
   try {
@@ -43,15 +42,29 @@ const uploadItem = async (req: Request, res: Response) => {
       }
     }
 
+    // Process the image with Vision API
+    let visionApiData = { visionApiData: {} };
+    try {
+      if (req.body.imageUrl) {
+        const imageAnalysis = await visionService.getImageAnalysis(req.body.imageUrl);
+        visionApiData = { visionApiData: imageAnalysis };
+      }
+    } catch (error) {
+      console.error("Vision API processing error:", error);
+    }
+
     const newItem: IItem = {
       userId: req.body.userId,
       imageUrl: req.body.imageUrl,
       itemType: req.body.itemType,
       description: req.body.description || "",
-      location: locationData || "", 
+      location: locationData || "",
       category: req.body.category || "",
       ownerName: user.userName,
       ownerEmail: user.email,
+      visionApiData: visionApiData.visionApiData,
+      isResolved: false,
+      eventDate: req.body.eventDate || req.body.date || null,
     };
 
     const savedItem = await itemModel.create(newItem);
