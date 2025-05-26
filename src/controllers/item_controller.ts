@@ -1,5 +1,4 @@
 /** @format */
-
 import { Request, Response } from "express";
 import itemModel, { IItem } from "../models/item_model";
 import userModel from "../models/user_model";
@@ -8,29 +7,36 @@ import visionService from "../services/vision-service";
 const uploadItem = async (req: Request, res: Response) => {
   try {
     if (!req.body.userId) {
-      return res.status(400).send("Missing required field: userId");
+      res.status(400).send("Missing required field: userId");
+      return;
     }
 
     if (!req.body.imageUrl) {
-      return res.status(400).send( "Missing required field: imageUrl");
+      res.status(400).send("Missing required field: imageUrl");
+      return;
     }
 
     if (typeof req.body.imageUrl !== "string" || !req.body.imageUrl.trim()) {
-      return res.status(400).send("Invalid imageUrl format");
+      res.status(400).send("Invalid imageUrl format");
+      return;
     }
 
     if (!req.body.itemType) {
-      return res.status(400).send("Missing required field: itemType");
+      res.status(400).send("Missing required field: itemType");
+      return;
     }
 
     if (req.body.itemType !== "lost" && req.body.itemType !== "found") {
-      return res.status(400).send("Item type must be 'lost' or 'found'");
+      res.status(400).send("Item type must be 'lost' or 'found'");
+      return;
     }
 
-    
+    const visionApiData = await enhanceItemWithAI(req.body.imageUrl);
+
     const user = await userModel.findById(req.body.userId);
     if (!user) {
-      return res.status(404).send("User not found");
+      res.status(404).send("User not found");
+      return;
     }
 
     let locationData = req.body.location;
@@ -40,17 +46,6 @@ const uploadItem = async (req: Request, res: Response) => {
       } catch (e) {
         console.log("Failed to parse location JSON:", e);
       }
-    }
-
-    // Process the image with Vision API
-    let visionApiData = { visionApiData: {} };
-    try {
-      if (req.body.imageUrl) {
-        const imageAnalysis = await visionService.getImageAnalysis(req.body.imageUrl);
-        visionApiData = { visionApiData: imageAnalysis };
-      }
-    } catch (error) {
-      console.error("Vision API processing error:", error);
     }
 
     const newItem: IItem = {
@@ -69,10 +64,12 @@ const uploadItem = async (req: Request, res: Response) => {
 
     const savedItem = await itemModel.create(newItem);
     console.log("Item saved successfully with ID:", savedItem._id);
-    return res.status(201).send(savedItem);
-    } catch (error) {
-    return res.status(500).send("Error uploading item: " + (error as Error).message);
-}
+    res.status(201).send(savedItem);
+    return;
+  } catch (error) {
+    res.status(500).send("Error uploading item: " + (error as Error).message);
+    return;
+  }
 };
 
 const getAllItems = async (req: Request, res: Response) => {
@@ -92,13 +89,12 @@ const getAllItems = async (req: Request, res: Response) => {
 
     const items = await itemModel.find(query);
 
-
-    return res.status(200).send(items);
+    res.status(200).send(items);
+    return;
   } catch (error) {
     console.error("Error getting items:", error);
-    return res
-      .status(500)
-      .send("Error fetching items: " + (error as Error).message);
+    res.status(500).send("Error fetching items: " + (error as Error).message);
+    return;
   }
 };
 
@@ -106,34 +102,37 @@ const getItemById = async (req: Request, res: Response) => {
   try {
     const itemId = req.params.id;
     if (!itemId) {
-      return res.status(400).send("Item ID is required");
+      res.status(400).send("Item ID is required");
+      return;
     }
 
     const item = await itemModel.findById(itemId);
 
     if (!item) {
-      return res.status(404).send("Item not found");
+      res.status(404).send("Item not found");
+      return;
     }
 
-    return res.status(200).send(item);
+    res.status(200).send(item);
+    return;
   } catch (error) {
     console.log("Error getting item by ID:", error);
-    return res
-      .status(500)
-      .send("Error fetching item: " + (error as Error).message);
+    res.status(500).send("Error fetching item: " + (error as Error).message);
+    return;
   }
 };
-
 
 const updateItem = async (req: Request, res: Response) => {
   try {
     const item = await itemModel.findById(req.params.id);
     if (!item) {
-      return res.status(404).send("Item not found");
+      res.status(404).send("Item not found");
+      return;
     }
 
     if (item.userId !== req.body.userId) {
-      return res.status(403).send("Not authorized to update this item");
+      res.status(403).send("Not authorized to update this item");
+      return;
     }
 
     if (req.body.description) item.description = req.body.description;
@@ -151,20 +150,53 @@ const deleteItem = async (req: Request, res: Response) => {
   try {
     const item = await itemModel.findById(req.params.id);
     if (!item) {
-      return res.status(404).send("Item not found");
+      res.status(404).send("Item not found");
+      return;
     }
 
     if (item.userId !== req.body.userId) {
-      return res.status(403).send("Not authorized to delete this item");
+      res.status(403).send("Not authorized to delete this item");
+      return;
     }
 
     await itemModel.findByIdAndDelete(req.params.id);
-    res.status(200).send("Item deleted successfully" );
+    res.status(200).send("Item deleted successfully");
   } catch (error) {
     res.status(500).send("Error deleting item: " + (error as Error).message);
   }
 };
 
+const enhanceItemWithAI = async (imageUrl: string) => {
+  try {
+    const visionAnalysisResult = await visionService.getImageAnalysis(imageUrl);
+    const labels = visionAnalysisResult.labels;
+    const objects = visionAnalysisResult.objects.map((obj) => ({
+      name: obj.name,
+      score: obj.score,
+      boundingBox: obj.boundingBox || {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+      },
+    }));
+
+    return {
+      visionApiData: {
+        labels,
+        objects,
+      },
+    };
+  } catch (error) {
+    console.error("Error enhancing item with AI:", error);
+    return {
+      visionApiData: {
+        labels: [],
+        objects: [],
+      },
+    };
+  }
+};
 
 export default {
   uploadItem,

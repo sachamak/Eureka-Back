@@ -38,7 +38,8 @@ router.post(
       const file = files?.file?.[0] || files?.image?.[0];
 
       if (!file) {
-        return res.status(400).send("Missing required file. Please upload an image with field name 'file' or 'image'." );
+        res.status(400).send("Missing required file. Please upload an image with field name 'file' or 'image'." );
+        return;
       }
 
       const imageUrl = base + file.path;
@@ -68,17 +69,20 @@ router.post(
       req.file = file;
 
       if (!req.body.itemType) {
-        return res.status(400).send("Missing required field: itemType");
+         res.status(400).send("Missing required field: itemType");
+        return;
       }
 
       if (req.body.itemType !== "lost" && req.body.itemType !== "found") {
-        return res.status(400).send("Item type must be 'lost' or 'found'");
+         res.status(400).send("Item type must be 'lost' or 'found'");
+        return;
       }
 
-      return itemController.uploadItem(req, res);
+      itemController.uploadItem(req, res);
+
     } catch (error) {
       console.error("Error in /items POST route:", error);
-      return res
+      res
         .status(500)
         .send("Error uploading item: " + (error as Error).message);
     }
