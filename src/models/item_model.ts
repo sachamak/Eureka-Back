@@ -8,10 +8,15 @@ export interface IItem {
   itemType: 'lost' | 'found';
   description?: string;
   location?: {
-    lat?: number;
-    lng?: number;
+    lat: number;
+    lng: number;
   } | string;
   category?: string;
+  colors?: string[];
+  brand?: string;
+  condition?: 'new' | 'worn' | 'damaged' | 'other';
+  flaws?: string;
+  material?: string;
   timestamp?: Date;
   ownerName?: string;
   ownerEmail?: string;
@@ -27,15 +32,9 @@ export interface IItem {
         height: number;
       }
     }>;
-    colors?: Array<{
-      color: string;
-      score: number;
-    }>;
-    imageProperties?: any;
   };
   matchedItemId?: string;
   isResolved?: boolean;
-  eventDate: Date;
 }
 
 const itemSchema = new mongoose.Schema<IItem>(
@@ -62,6 +61,21 @@ const itemSchema = new mongoose.Schema<IItem>(
     category: {
       type: String,
     },
+    colors: {
+      type: [String],
+    },
+    brand: {
+      type: String,
+    },
+    condition: {
+      type: String,
+    },
+    flaws: {
+      type: String,
+    },
+    material: {
+      type: String,
+    },
     ownerName: {
       type: String,
     },
@@ -80,11 +94,6 @@ const itemSchema = new mongoose.Schema<IItem>(
           height: Number,
         }
       }],
-      colors: [{
-        color: String,
-        score: Number,
-      }],
-      imageProperties: mongoose.Schema.Types.Mixed,
     },
     matchedItemId: {
       type: String,
@@ -92,9 +101,6 @@ const itemSchema = new mongoose.Schema<IItem>(
     isResolved: {
       type: Boolean,
       default: false,
-    },
-    eventDate: {
-      type: Date,
     },
   },
   { timestamps: true }
