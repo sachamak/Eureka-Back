@@ -59,7 +59,6 @@ const uploadItem = async (req: Request, res: Response) => {
       ownerEmail: user.email,
       visionApiData: visionApiData.visionApiData,
       isResolved: false,
-      eventDate: req.body.eventDate || req.body.date || null,
     };
 
     const savedItem = await itemModel.create(newItem);
@@ -74,8 +73,8 @@ const uploadItem = async (req: Request, res: Response) => {
 
 const getAllItems = async (req: Request, res: Response) => {
   try {
-    const itemType = req.query.itemType as string;
-    const userId = req.query.userId as string;
+    const itemType = req.query.itemType;
+    const userId = req.query.userId;
 
     const query: Record<string, unknown> = {};
 
