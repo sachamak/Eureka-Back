@@ -13,6 +13,7 @@ import fileRoutes from "./routes/file_routes";
 import itemRoutes from "./routes/item_routes";
 import matchRoutes from "./routes/match_routes";
 import notificationRoutes from "./routes/notification_routes";
+
 //import cors from "cors";
 //import path from "path";
 
@@ -42,6 +43,7 @@ app.use("/file", fileRoutes);
 app.use("/items", itemRoutes);
 app.use("/match", matchRoutes);
 app.use("/notification", notificationRoutes);
+
 app.use("/public", express.static("public"));
 /*
 const frontPath = path.resolve("front");
