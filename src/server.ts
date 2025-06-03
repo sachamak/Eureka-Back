@@ -11,7 +11,7 @@ import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
 import fileRoutes from "./routes/file_routes";
 import itemRoutes from "./routes/item_routes";
-
+import matchRoutes from "./routes/match_routes";
 //import cors from "cors";
 //import path from "path";
 
@@ -39,6 +39,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/auth", authRoutes);
 app.use("/file", fileRoutes);
 app.use("/items", itemRoutes);
+app.use("/match", matchRoutes);
 app.use("/public", express.static("public"));
 /*
 const frontPath = path.resolve("front");
