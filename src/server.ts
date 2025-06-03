@@ -13,8 +13,7 @@ import fileRoutes from "./routes/file_routes";
 import itemRoutes from "./routes/item_routes";
 import matchRoutes from "./routes/match_routes";
 import notificationRoutes from "./routes/notification_routes";
-
-//import cors from "cors";
+import cors from "cors";
 //import path from "path";
 
 
@@ -26,16 +25,16 @@ app.use((req, res, next) => {
 
   next();
 });
-/*
+
 app.use(
   cors({
-    origin: process.env.DOMAIN_BASE || "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:3002"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-*/
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/auth", authRoutes);
@@ -43,7 +42,6 @@ app.use("/file", fileRoutes);
 app.use("/items", itemRoutes);
 app.use("/match", matchRoutes);
 app.use("/notification", notificationRoutes);
-
 app.use("/public", express.static("public"));
 /*
 const frontPath = path.resolve("front");
