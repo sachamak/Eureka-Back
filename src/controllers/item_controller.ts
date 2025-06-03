@@ -114,10 +114,9 @@ const uploadItem = async (req: Request, res: Response) => {
     return res.status(201).send(newItem);
   } catch (error) {
     console.error("Error uploading item:", error);
-    return res.status(500).json({
-      success: false,
-      error: "Error uploading item: " + (error as Error).message,
-    });
+    return res
+      .status(500)
+      .send("Error uploading item: " + (error as Error).message);
   }
 };
 const getAllItems = async (req: Request, res: Response) => {
