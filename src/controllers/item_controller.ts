@@ -5,6 +5,8 @@ import userModel from "../models/user_model";
 import visionService from "../services/vision-service";
 import matchModel, { IMatch } from "../models/match_model";
 import { MatchingService } from "../services/matching-service";
+import notificationModel, { INotification } from "../models/notification_model";
+import { emitNotification } from "../services/socket-service";
 
 const uploadItem = async (req: Request, res: Response) => {
   try {
@@ -87,6 +89,10 @@ const uploadItem = async (req: Request, res: Response) => {
       );
 
       if (highConfidenceMatches.length > 0) {
+        console.log(
+          `Found ${highConfidenceMatches.length} high-confidence matches, sending notifications`
+        );
+
         for (const match of highConfidenceMatches) {
           const matchedItem = match.item;
           const matchOwner = await userModel.findById(matchedItem.userId);
@@ -104,11 +110,45 @@ const uploadItem = async (req: Request, res: Response) => {
               res.status(400).send("Error");
               return;
             }
+            const newNotification: INotification = {
+              type: "MATCH_FOUND",
+              title: "Potential Match Found!",
+              message: `We found a potential match for your ${matchedItem.itemType} item!`,
+              userId: matchedItem.userId,
+              matchId: savedMatch._id,
+              isRead: false,
+            };
+            const savedNotification =
+              await notificationModel.create(newNotification);
+            if (!savedNotification) {
+              res.status(400).send("Error");
+              return;
+            }
+            emitNotification(savedNotification.userId, savedNotification);
+            const newNotification2: INotification = {
+              type: "MATCH_FOUND",
+              title: "Potential Match Found!",
+              message: `We found a potential match for your ${savedItem.itemType} item!`,
+              userId: savedItem.userId,
+              matchId: savedMatch._id,
+              isRead: false,
+            };
+            const savedNotification2 =
+              await notificationModel.create(newNotification2);
+            if (!savedNotification2) {
+              res.status(400).send("Error");
+              return;
+            }
+            emitNotification(savedNotification2.userId, savedNotification2);
+
+            console.log(
+              `Sent notification to user ${matchedItem.userId} (${matchOwner.email})`
+            );
           }
         }
       }
     } catch (error) {
-      console.error("Error  matched item owner:", error);
+      console.error("Error notifying matched item owner:", error);
     }
 
     return res.status(201).send(newItem);
@@ -118,6 +158,7 @@ const uploadItem = async (req: Request, res: Response) => {
     return;
   }
 };
+
 const getAllItems = async (req: Request, res: Response) => {
   try {
     const itemType = req.query.itemType;
@@ -243,6 +284,7 @@ const enhanceItemWithAI = async (imageUrl: string) => {
     };
   }
 };
+
 const findPotentialMatches = async (
   item: IItem
 ): Promise<Array<{ item: IItem; score: number }>> => {
