@@ -22,7 +22,8 @@ const googleSignIn = async (req: Request, res: Response) => {
     const payload = ticket.getPayload();
     const email = payload?.email;
     if (!email) {
-      return res.status(400).send("Invalid credentials");
+      res.status(400).send("Invalid credentials");
+      return;
     }
 
     let user = await userModel.findOne({ email: email });
@@ -39,22 +40,25 @@ const googleSignIn = async (req: Request, res: Response) => {
     }
     const tokens = generateToken(user._id);
       if (!tokens) {
-        return res.status(500).send("server error");
+        res.status(500).send("server error");
+        return;
       }
       if (user.refreshToken == null) {
         user.refreshToken = [];
       }
       user.refreshToken.push(tokens.refreshToken);
       await user.save();
-      return res.status(200).send({
+      res.status(200).send({
         email: user.email,
         _id: user._id,
         imgUrl: user.imgURL,
         userName: user.userName,
         ...tokens,
       });
+      return;
   } catch (err) {
-    return res.status(400).send((err as Error).message);
+    res.status(400).send((err as Error).message);
+    return;
   }
 };
 
@@ -67,10 +71,12 @@ const register = async (req: Request, res: Response) => {
     let ImgUrl = req.body.imgUrl;
     if (!ImgUrl) ImgUrl = null;
     if (await userModel.findOne({ userName: req.body.userName })) {
-      return res.status(400).send("User name already exists");
+      res.status(400).send("User name already exists");
+      return;
     }
     if (await userModel.findOne({ email: req.body.email })) {
-      return res.status(400).send("email already exists");
+      res.status(400).send("email already exists");
+      return;
     }
     const user = await userModel.create({
       email: req.body.email,
@@ -295,14 +301,16 @@ const updateUser = async (req: Request, res: Response) => {
 
     const user = await userModel.findById(userId);
     if (!user) {
-      return res.status(404).send("User not found");
+      res.status(404).send("User not found");
+      return;
     }
 
     if (req.body.userName && req.body.userName !== user.userName) {
       const newUserName = req.body.userName;
       const existingUser = await userModel.findOne({ userName: newUserName });
       if (existingUser) {
-        return res.status(400).send("User name already exists");
+        res.status(400).send("User name already exists");
+        return;
       }
     }
 
@@ -322,7 +330,8 @@ const deleteUser = async (req: Request, res: Response) => {
     const userId = new mongoose.Types.ObjectId(req.params.id);
     const user = await userModel.findById(userId);
     if (!user) {
-      return res.status(404).send("User not found");
+      res.status(404).send("User not found");
+      return;
     }
 
     const user1 = await userModel.findByIdAndDelete(userId);
