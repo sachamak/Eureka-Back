@@ -114,7 +114,6 @@ const uploadItem = async (req: Request, res: Response) => {
     return res.status(201).send(newItem);
   } catch (error) {
     console.error("Error uploading item:", error);
-
      res.status(500).send("Error fetching item: " + (error as Error).message);
     return;
   }
