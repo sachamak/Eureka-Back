@@ -10,3 +10,5 @@ openssl-secret
 public
 
 .env
+
+.env_prod
