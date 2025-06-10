@@ -218,7 +218,7 @@ const deleteItem = async (req: Request, res: Response) => {
       return;
     }
 
-    if (item.userId !== req.body.userId) {
+    if (item.userId !== req.params.id) {
       res.status(403).send("Not authorized to delete this item");
       return;
     }
