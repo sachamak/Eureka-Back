@@ -61,6 +61,7 @@ const uploadItem = async (req: Request, res: Response) => {
       itemType: req.body.itemType,
       description: req.body.description,
       location: locationData,
+      date: req.body.date,
       category: req.body.category,
       colors: req.body.colors,
       brand: req.body.brand || "",
