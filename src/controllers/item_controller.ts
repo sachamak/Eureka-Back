@@ -218,14 +218,10 @@ const deleteItem = async (req: Request, res: Response) => {
       return;
     }
 
-    if (item.userId !== req.params.id) {
-      res.status(403).send("Not authorized to delete this item");
-      return;
-    }
     const matches = await matchModel.find({
       $or: [{ item1Id: req.params.id }, { item2Id: req.params.id }],
     });
-    if (!matches || matches.length === 0) {
+    if (matches.length > 0) {
       for (const match of matches) {
         await notificationModel.deleteMany({
           matchId: match._id,
