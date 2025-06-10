@@ -1,21 +1,28 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/**
+ * eslint-disable @typescript-eslint/no-explicit-any
+ *
+ * @format
+ */
+
 import mongoose from "mongoose";
 
 export interface IItem {
   _id?: string;
   userId: string;
   imageUrl: string;
-  itemType: 'lost' | 'found';
+  itemType: "lost" | "found";
   description?: string;
-  location?: {
-    lat: number;
-    lng: number;
-  } | string;
+  location?:
+    | {
+        lat: number;
+        lng: number;
+      }
+    | string;
   date?: Date;
   category?: string;
   colors?: string[];
   brand?: string;
-  condition?: 'new' | 'worn' | 'damaged' | 'other';
+  condition?: "new" | "worn" | "damaged" | "other";
   flaws?: string;
   material?: string;
   timestamp?: Date;
@@ -31,7 +38,7 @@ export interface IItem {
         y: number;
         width: number;
         height: number;
-      }
+      };
     }>;
   };
   matchedItemId?: string;
@@ -50,7 +57,7 @@ const itemSchema = new mongoose.Schema<IItem>(
     },
     itemType: {
       type: String,
-      enum: ['lost', 'found'],
+      enum: ["lost", "found"],
       required: true,
     },
     description: {
@@ -59,7 +66,7 @@ const itemSchema = new mongoose.Schema<IItem>(
     location: {
       type: mongoose.Schema.Types.Mixed,
     },
-     date: {
+    date: {
       type: Date,
       required: true,
     },
@@ -89,16 +96,18 @@ const itemSchema = new mongoose.Schema<IItem>(
     },
     visionApiData: {
       labels: [String],
-      objects: [{
-        name: String,
-        score: Number,
-        boundingBox: {
-          x: Number,
-          y: Number,
-          width: Number,
-          height: Number,
-        }
-      }],
+      objects: [
+        {
+          name: String,
+          score: Number,
+          boundingBox: {
+            x: Number,
+            y: Number,
+            width: Number,
+            height: Number,
+          },
+        },
+      ],
     },
     matchedItemId: {
       type: String,
@@ -113,4 +122,4 @@ const itemSchema = new mongoose.Schema<IItem>(
 
 const itemModel = mongoose.model<IItem>("items", itemSchema);
 
-export default itemModel; 
+export default itemModel;
