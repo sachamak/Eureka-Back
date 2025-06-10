@@ -1,6 +1,7 @@
 /** @format */
 import { Request, Response } from "express";
 import matchModel from "../models/match_model";
+import notificationModel from "../models/notification_model";
 
 const getAllByUserId = async (req: Request, res: Response) => {
   const userId = req.query.Id;
@@ -47,6 +48,8 @@ const deleteById = async (req: Request, res: Response) => {
       res.status(400).send("Match ID is required");
       return;
     }
+
+    await notificationModel.deleteMany({ matchId: matchId });
 
     const match = await matchModel.findByIdAndDelete(matchId);
     if (!match) {

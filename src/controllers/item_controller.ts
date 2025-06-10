@@ -155,7 +155,7 @@ const uploadItem = async (req: Request, res: Response) => {
     return res.status(201).send(newItem);
   } catch (error) {
     console.error("Error uploading item:", error);
-     res.status(500).send("Error fetching item: " + (error as Error).message);
+    res.status(500).send("Error fetching item: " + (error as Error).message);
     return;
   }
 };
@@ -210,30 +210,6 @@ const getItemById = async (req: Request, res: Response) => {
   }
 };
 
-const updateItem = async (req: Request, res: Response) => {
-  try {
-    const item = await itemModel.findById(req.params.id);
-    if (!item) {
-      res.status(404).send("Item not found");
-      return;
-    }
-
-    if (item.userId !== req.body.userId) {
-      res.status(403).send("Not authorized to update this item");
-      return;
-    }
-
-    if (req.body.description) item.description = req.body.description;
-    if (req.body.location) item.location = req.body.location;
-    if (req.body.category) item.category = req.body.category;
-
-    await item.save();
-    res.status(200).send(item);
-  } catch (error) {
-    res.status(500).send("Error updating item: " + (error as Error).message);
-  }
-};
-
 const deleteItem = async (req: Request, res: Response) => {
   try {
     const item = await itemModel.findById(req.params.id);
@@ -245,6 +221,17 @@ const deleteItem = async (req: Request, res: Response) => {
     if (item.userId !== req.body.userId) {
       res.status(403).send("Not authorized to delete this item");
       return;
+    }
+    const matches = await matchModel.find({
+      $or: [{ item1Id: req.params.id }, { item2Id: req.params.id }],
+    });
+    if (!matches || matches.length === 0) {
+      for (const match of matches) {
+        await notificationModel.deleteMany({
+          matchId: match._id,
+        });
+        await matchModel.findByIdAndDelete(match._id);
+      }
     }
 
     await itemModel.findByIdAndDelete(req.params.id);
@@ -312,6 +299,5 @@ export default {
   uploadItem,
   getAllItems,
   getItemById,
-  updateItem,
   deleteItem,
 };
