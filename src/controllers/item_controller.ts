@@ -6,7 +6,7 @@ import visionService from "../services/vision-service";
 import matchModel, { IMatch } from "../models/match_model";
 import { MatchingService } from "../services/matching-service";
 import notificationModel, { INotification } from "../models/notification_model";
-import { emitNotification } from "../services/socket-service";
+import { emitNotification } from "../services/notification.socket-service";
 
 const uploadItem = async (req: Request, res: Response) => {
   try {
@@ -303,7 +303,9 @@ const isResolved = async (req: Request, res: Response) => {
     await item.save();
     res.status(200).send("Item marked as resolved");
   } catch (error) {
-    res.status(500).send("Error marking item as resolved: " + (error as Error).message);
+    res
+      .status(500)
+      .send("Error marking item as resolved: " + (error as Error).message);
   }
 };
 
