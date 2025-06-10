@@ -11,6 +11,7 @@ export interface IItem {
     lat: number;
     lng: number;
   } | string;
+  date?: Date;
   category?: string;
   colors?: string[];
   brand?: string;
@@ -57,6 +58,10 @@ const itemSchema = new mongoose.Schema<IItem>(
     },
     location: {
       type: mongoose.Schema.Types.Mixed,
+    },
+     date: {
+      type: Date,
+      required: true,
     },
     category: {
       type: String,

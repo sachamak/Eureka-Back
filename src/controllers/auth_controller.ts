@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/** @format */
 
 import { NextFunction, Request, Response } from "express";
 import userModel from "../models/user_model";
@@ -36,32 +35,30 @@ const googleSignIn = async (req: Request, res: Response) => {
         imgURL: picture,
         userName: email,
       });
-      
     }
     const tokens = generateToken(user._id);
-      if (!tokens) {
-        res.status(500).send("server error");
-        return;
-      }
-      if (user.refreshToken == null) {
-        user.refreshToken = [];
-      }
-      user.refreshToken.push(tokens.refreshToken);
-      await user.save();
-      res.status(200).send({
-        email: user.email,
-        _id: user._id,
-        imgUrl: user.imgURL,
-        userName: user.userName,
-        ...tokens,
-      });
+    if (!tokens) {
+      res.status(500).send("server error");
       return;
+    }
+    if (user.refreshToken == null) {
+      user.refreshToken = [];
+    }
+    user.refreshToken.push(tokens.refreshToken);
+    await user.save();
+    res.status(200).send({
+      email: user.email,
+      _id: user._id,
+      imgUrl: user.imgURL,
+      userName: user.userName,
+      ...tokens,
+    });
+    return;
   } catch (err) {
     res.status(400).send((err as Error).message);
     return;
   }
 };
-
 
 const register = async (req: Request, res: Response) => {
   try {
@@ -83,6 +80,7 @@ const register = async (req: Request, res: Response) => {
       password: hashedPassword,
       imgURL: ImgUrl,
       userName: req.body.userName,
+      phoneNumber: req.body.phoneNumber,
     });
     res.status(200).send(user);
   } catch (error) {
