@@ -291,9 +291,26 @@ const findPotentialMatches = async (
   }
 };
 
+const isResolved = async (req: Request, res: Response) => {
+  try {
+    const item = await itemModel.findById(req.params.id);
+    if (!item) {
+      res.status(404).send("Item not found");
+      return;
+    }
+
+    item.isResolved = true;
+    await item.save();
+    res.status(200).send("Item marked as resolved");
+  } catch (error) {
+    res.status(500).send("Error marking item as resolved: " + (error as Error).message);
+  }
+};
+
 export default {
   uploadItem,
   getAllItems,
   getItemById,
   deleteItem,
+  isResolved,
 };

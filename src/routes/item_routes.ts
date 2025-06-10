@@ -93,6 +93,35 @@ const upload = multer({
 
 /**
  * @swagger
+ * /items/{id}/resolve:
+ *   post:
+ *     summary: Mark an item as resolved
+ *     description: Mark a lost or found item as resolved
+ *     tags: [Items]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+
+ *         schema:
+ *           type: string
+ *         description: Item ID
+ *     responses:
+ *       200:
+ *         description: Item marked as resolved
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Item not found
+ *       500:
+ *         description: Server error  
+ */
+router.post("/:id/resolve", authMiddleware, item_controller.isResolved);
+
+/**
+ * @swagger
  * /items:
  *   post:
  *     summary: Add a new lost or found item
