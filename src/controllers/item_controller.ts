@@ -221,7 +221,7 @@ const deleteItem = async (req: Request, res: Response) => {
     const matches = await matchModel.find({
       $or: [{ item1Id: req.params.id }, { item2Id: req.params.id }],
     });
-    if (!matches || matches.length === 0) {
+    if (matches.length > 0) {
       for (const match of matches) {
         await notificationModel.deleteMany({
           matchId: match._id,
