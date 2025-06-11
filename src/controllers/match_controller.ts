@@ -10,12 +10,10 @@ const getAllByUserId = async (req: Request, res: Response) => {
       res.status(400).send("User name is required");
       return;
     }
-    const matches = await matchModel.find({ userId: userId });
-    if (!matches || matches.length === 0) {
-      res.status(404).send("No matches found for this user");
-      return;
-    }
-    res.status(200).send(matches);
+    const matches = await matchModel.find({
+      $or: [{ userId1: userId }, { userId2: userId }],
+    });
+    res.status(200).send(matches || []);
   } catch (error) {
     res.status(500).send(error);
     return;

@@ -1,3 +1,5 @@
+/** @format */
+
 import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai";
 import { IItem } from "../models/item_model";
 
@@ -9,17 +11,19 @@ type IItemWithTimestamps = IItem & {
 class GeminiService {
   private genAI: GoogleGenerativeAI;
   private model: GenerativeModel;
-  
+
   constructor() {
-    const apiKey = process.env.GEMINI_API_KEY || "AIzaSyBuhqOtRNZq2954QjKMsI66vbbwCNIjsfU";
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not set in environment variables");
+    }
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   }
-  
- 
+
   async evaluateMatch(
-    lostItem: IItem, 
-    foundItem: IItem,
+    lostItem: IItem,
+    foundItem: IItem
   ): Promise<{ confidenceScore: number; reasoning: string }> {
     try {
       const prompt = `
@@ -50,47 +54,55 @@ Return ONLY valid JSON in this exact format:
 {"confidenceScore": number, "reasoning": "your explanation"}
 
 LOST ITEM:
-Description: ${lostItem.description || 'N/A'}
-Category: ${lostItem.category || 'N/A'}
-Location: ${JSON.stringify(lostItem.location) || 'N/A'}
-Date Lost: ${(lostItem as IItemWithTimestamps).createdAt?.toLocaleString() || 'N/A'}
+Description: ${lostItem.description || "N/A"}
+Category: ${lostItem.category || "N/A"}
+Location: ${JSON.stringify(lostItem.location) || "N/A"}
+Date Lost: ${(lostItem as IItemWithTimestamps).createdAt?.toLocaleString() || "N/A"}
 Vision API Data: ${JSON.stringify(lostItem.visionApiData || {}, null, 2)}
-Colors: ${lostItem.colors?.join(', ') || 'N/A'}
-Brand: ${lostItem.brand || 'N/A'}
-Condition: ${lostItem.condition || 'N/A'}
-Flaws: ${lostItem.flaws || 'N/A'}
-Material: ${lostItem.material || 'N/A'}
+Colors: ${lostItem.colors?.join(", ") || "N/A"}
+Brand: ${lostItem.brand || "N/A"}
+Condition: ${lostItem.condition || "N/A"}
+Flaws: ${lostItem.flaws || "N/A"}
+Material: ${lostItem.material || "N/A"}
 
 FOUND ITEM:
-Description: ${foundItem.description || 'N/A'}
-Category: ${foundItem.category || 'N/A'}
-Location: ${JSON.stringify(foundItem.location) || 'N/A'}
-Date Found: ${(foundItem as IItemWithTimestamps).createdAt?.toLocaleString() || 'N/A'}
+Description: ${foundItem.description || "N/A"}
+Category: ${foundItem.category || "N/A"}
+Location: ${JSON.stringify(foundItem.location) || "N/A"}
+Date Found: ${(foundItem as IItemWithTimestamps).createdAt?.toLocaleString() || "N/A"}
 Vision API Data: ${JSON.stringify(foundItem.visionApiData || {}, null, 2)}
-Colors: ${foundItem.colors?.join(', ') || 'N/A'}
-Brand: ${foundItem.brand || 'N/A'}
-Condition: ${foundItem.condition || 'N/A'}
-Flaws: ${foundItem.flaws || 'N/A'}
-Material: ${foundItem.material || 'N/A'}
+Colors: ${foundItem.colors?.join(", ") || "N/A"}
+Brand: ${foundItem.brand || "N/A"}
+Condition: ${foundItem.condition || "N/A"}
+Flaws: ${foundItem.flaws || "N/A"}
+Material: ${foundItem.material || "N/A"}
 `;
-      
 
       const result = await this.model.generateContent(prompt);
       const responseText = result.response.text().trim();
-      
+
       try {
         let cleanedResponse = responseText;
-        cleanedResponse = cleanedResponse.replace(/```json\s+|\s+```|```/g, '');
-        cleanedResponse = cleanedResponse.replace(/`/g, '');
-        
+        cleanedResponse = cleanedResponse.replace(/```json\s+|\s+```|```/g, "");
+        cleanedResponse = cleanedResponse.replace(/`/g, "");
+
         const parsedResponse = JSON.parse(cleanedResponse);
-        
-        if (typeof parsedResponse.confidenceScore !== 'number' || typeof parsedResponse.reasoning !== 'string') {
-          console.error("Invalid response structure from Gemini:", parsedResponse);
+
+        if (
+          typeof parsedResponse.confidenceScore !== "number" ||
+          typeof parsedResponse.reasoning !== "string"
+        ) {
+          console.error(
+            "Invalid response structure from Gemini:",
+            parsedResponse
+          );
           return { confidenceScore: 0, reasoning: "" };
         }
-        
-        const confidenceScore = Math.min(100, Math.max(0, parsedResponse.confidenceScore));
+
+        const confidenceScore = Math.min(
+          100,
+          Math.max(0, parsedResponse.confidenceScore)
+        );
         return { confidenceScore, reasoning: parsedResponse.reasoning };
       } catch (error) {
         console.error("Error parsing Gemini response:", error);
