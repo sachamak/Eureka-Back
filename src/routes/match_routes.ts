@@ -5,7 +5,7 @@ import { authMiddleware } from '../controllers/auth_controller';
 const router = express.Router();
 
 
-router.delete('/', authMiddleware, matchController.deleteById);
+router.delete('/:id', authMiddleware, matchController.deleteById);
 router.get('/', authMiddleware, matchController.getAllByUserId);
 router.get('/:id', authMiddleware, matchController.getById);
 

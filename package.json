@@ -5,8 +5,10 @@
   "scripts": {
     "test": "tsc && jest --detectOpenHandles --forceExit --RunInBand --coverage",
     "testAuth": "tsc && jest --detectOpenHandles --forceExit --coverage auth.test.ts",
-    "testItem": "tsc && jest --detectOpenHandles --forceExit items.test.ts",
     "testFile": "tsc && jest --detectOpenHandles --forceExit file.test.ts",
+    "testItem": "tsc && jest --detectOpenHandles --forceExit --coverage item.test.ts",
+    "testMatch": "tsc && jest --detectOpenHandles --forceExit --coverage match.test.ts",
+    "testNotification": "tsc && jest --detectOpenHandles --forceExit --coverage notification.test.ts",
     "start": "tsc && node dist/src/index.js",
     "dev": "nodemon ./src/index.ts",
     "prod": "cp ./.env_prod .env && tsc -p tsconfig_prod.json && pm2 restart ecosystem.config.js --env production",
