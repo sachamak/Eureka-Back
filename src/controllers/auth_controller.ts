@@ -21,8 +21,8 @@ const googleSignIn = async (req: Request, res: Response) => {
     const payload = ticket.getPayload();
     const email = payload?.email;
     if (!email) {
-      res.status(400).send("Invalid credentials");
-      return;
+       res.status(400).send("Invalid credentials");
+       return;
     }
 
     let user = await userModel.findOne({ email: email });
@@ -34,12 +34,13 @@ const googleSignIn = async (req: Request, res: Response) => {
         password: " ",
         imgURL: picture,
         userName: email,
+        phoneNumber: " ",
       });
     }
     const tokens = generateToken(user._id);
     if (!tokens) {
-      res.status(500).send("server error");
-      return;
+       res.status(500).send("server error");
+       return;
     }
     if (user.refreshToken == null) {
       user.refreshToken = [];
@@ -68,8 +69,8 @@ const register = async (req: Request, res: Response) => {
     let ImgUrl = req.body.imgUrl;
     if (!ImgUrl) ImgUrl = null;
     if (await userModel.findOne({ userName: req.body.userName })) {
-      res.status(400).send("User name already exists");
-      return;
+       res.status(400).send("User name already exists");
+       return;
     }
     if (await userModel.findOne({ email: req.body.email })) {
       res.status(400).send("email already exists");
@@ -93,11 +94,17 @@ const generateToken = (
   if (!process.env.TOKEN_SECRET || !process.env.TOKEN_EXPIRATION) {
     return null;
   }
+
+  console.log(
+    "Generating new token with expiration:",
+    process.env.TOKEN_EXPIRATION
+  );
+
   const random = Math.floor(Math.random() * 1000000);
   const accessToken = jwt.sign(
     { _id: _id, random: random },
     process.env.TOKEN_SECRET,
-    { expiresIn: process.env.TOKEN_EXPIRATION }
+    { expiresIn: "24h" } // Override with 24 hours for testing
   );
   const refreshToken = jwt.sign(
     { _id: _id, random: random },
@@ -242,31 +249,138 @@ export const authMiddleware = (
 ) => {
   const authorization = req.header("authorization");
   if (!authorization) {
-    res.status(402).send("Unauthorized");
+    console.error("Auth error: Missing authorization header");
+    res.status(401).send("Unauthorized - Missing authorization header");
     return;
   }
-  const token = authorization && authorization.split(" ")[1];
+
+  const parts = authorization.split(" ");
+  if (parts.length !== 2) {
+    console.error("Auth error: Invalid authorization format", authorization);
+    res
+      .status(401)
+      .send(
+        "Unauthorized - Invalid authorization format. Expected 'Bearer [token]' or 'JWT [token]'"
+      );
+    return;
+  }
+
+  const prefix = parts[0];
+  const token = parts[1];
+
+  if (prefix !== "Bearer" && prefix !== "JWT") {
+    console.error(
+      `Auth error: Invalid token prefix "${prefix}"`,
+      authorization
+    );
+    res
+      .status(401)
+      .send("Unauthorized - Invalid token prefix. Expected 'Bearer' or 'JWT'");
+    return;
+  }
+
   if (!token) {
-    res.status(403).send("Unauthorized");
+    console.error("Auth error: Empty token");
+    res.status(401).send("Unauthorized - Empty token");
     return;
   }
+
   if (!process.env.TOKEN_SECRET) {
-    res.status(500).send("server error");
+    console.error("Auth error: TOKEN_SECRET not set in environment");
+    res.status(500).send("Server configuration error - TOKEN_SECRET not set");
     return;
   }
-  jwt.verify(token, process.env.TOKEN_SECRET, (err, payload) => {
-    if (err) {
-      res.status(401).send("Unauthorized");
-      return;
+
+  const refreshToken = req.header("refresh-token");
+
+  jwt.verify(token, process.env.TOKEN_SECRET, async (err, payload) => {
+    if (err && err.name === "TokenExpiredError" && refreshToken) {
+      console.log(
+        "Token expired, attempting refresh with provided refresh token"
+      );
+      try {
+        const refreshPayload = jwt.verify(
+          refreshToken,
+          process.env.TOKEN_SECRET!
+        );
+        if (
+          !refreshPayload ||
+          typeof refreshPayload !== "object" ||
+          !("_id" in refreshPayload)
+        ) {
+          console.error("Invalid refresh token payload structure");
+          return res.status(401).send("Unauthorized - Invalid refresh token");
+        }
+
+        const user = await userModel.findOne({
+          _id: (refreshPayload as Payload)._id,
+        });
+        if (!user) {
+          console.error("User not found for refresh token");
+          return res.status(401).send("Unauthorized - Invalid refresh token");
+        }
+
+        if (!user.refreshToken || !user.refreshToken.includes(refreshToken)) {
+          console.error("Refresh token not found in user's refresh tokens");
+          return res.status(401).send("Unauthorized - Invalid refresh token");
+        }
+
+        const tokens = generateToken(user._id);
+        if (!tokens) {
+          console.error("Failed to generate new tokens");
+          return res
+            .status(500)
+            .send("Server error - Failed to generate new tokens");
+        }
+
+        user.refreshToken = user.refreshToken.filter((t) => t !== refreshToken);
+        user.refreshToken.push(tokens.refreshToken);
+        await user.save();
+
+        res.setHeader("new-access-token", tokens.accessToken);
+        res.setHeader("new-refresh-token", tokens.refreshToken);
+
+        req.params.userId = user._id;
+        console.log(
+          `User authenticated via token refresh: ${req.params.userId}`
+        );
+        return next();
+      } catch (refreshErr) {
+        console.error("Error refreshing token:", refreshErr);
+        return res
+          .status(401)
+          .send("Unauthorized - Invalid or expired refresh token");
+      }
     }
+
+    if (err) {
+      console.error("Auth error: Token verification failed", err);
+      if (err.name === "TokenExpiredError") {
+        return res.status(401).send("Unauthorized - Token expired");
+      } else if (err.name === "JsonWebTokenError") {
+        return res.status(401).send("Unauthorized - Invalid token");
+      } else {
+        return res.status(401).send(`Unauthorized - ${err.message}`);
+      }
+    }
+
+    if (!payload || typeof payload !== "object" || !("_id" in payload)) {
+      console.error("Auth error: Invalid payload structure", payload);
+      return res.status(401).send("Unauthorized - Invalid token payload");
+    }
+
     req.params.userId = (payload as Payload)._id;
+    console.log(`User authenticated: ${req.params.userId}`);
     next();
   });
 };
 
 const getUserById = async (req: Request, res: Response) => {
   try {
-    const userId = new mongoose.Types.ObjectId(req.params.id);
+    const userId = req.params.id;
+    if(!userId){
+      res.status(400).send("No id in params")
+    }
     const user = await userModel.findById(userId);
     if (!user) {
       res.status(404).send("User not found");
@@ -299,16 +413,16 @@ const updateUser = async (req: Request, res: Response) => {
 
     const user = await userModel.findById(userId);
     if (!user) {
-      res.status(404).send("User not found");
-      return;
+       res.status(404).send("User not found");
+        return;
     }
 
     if (req.body.userName && req.body.userName !== user.userName) {
       const newUserName = req.body.userName;
       const existingUser = await userModel.findOne({ userName: newUserName });
       if (existingUser) {
-        res.status(400).send("User name already exists");
-        return;
+         res.status(400).send("User name already exists");
+         return;
       }
     }
 
@@ -328,8 +442,8 @@ const deleteUser = async (req: Request, res: Response) => {
     const userId = new mongoose.Types.ObjectId(req.params.id);
     const user = await userModel.findById(userId);
     if (!user) {
-      res.status(404).send("User not found");
-      return;
+       res.status(404).send("User not found");
+       return;
     }
 
     const user1 = await userModel.findByIdAndDelete(userId);
