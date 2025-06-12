@@ -20,6 +20,20 @@ jest.mock("../services/vision-service", () => ({
           boundingBox: { x: 0, y: 0, width: 100, height: 100 },
         },
       ],
+      texts: [
+        {
+          text: "test-text",
+          confidence: 0.9,
+          boundingBox: { x: 0, y: 0, width: 100, height: 50 },
+        },
+      ],
+      logos: [
+        {
+          description: "test-logo",
+          score: 0.95,
+          boundingBox: { x: 0, y: 0, width: 100, height: 50 },
+        },
+      ],
     }),
   },
 }));

@@ -2,11 +2,33 @@
 import { Request, Response } from "express";
 import itemModel, { IItem } from "../models/item_model";
 import userModel from "../models/user_model";
+import { emitNotification } from "../services/notification.socket-service";
+import { MatchingService } from "../services/matching-service";
 import visionService from "../services/vision-service";
 import matchModel, { IMatch } from "../models/match_model";
-import { MatchingService } from "../services/matching-service";
 import notificationModel, { INotification } from "../models/notification_model";
-import { emitNotification } from "../services/notification.socket-service";
+
+const findPotentialMatches = async (
+  item: IItem
+): Promise<Array<{ item: IItem; score: number }>> => {
+  try {
+    const oppositeType = item.itemType === "lost" ? "found" : "lost";
+    const potentialMatches = await itemModel.find({
+      itemType: oppositeType,
+      isResolved: false,
+    });
+
+    const matches = await MatchingService(item, potentialMatches);
+    const significantMatches = matches.map((match) => ({
+      item: match.item,
+      score: match.confidenceScore,
+    }));
+    return significantMatches;
+  } catch (error) {
+    console.error("Error finding potential matches:", error);
+    return [];
+  }
+};
 
 const uploadItem = async (req: Request, res: Response) => {
   try {
@@ -14,27 +36,32 @@ const uploadItem = async (req: Request, res: Response) => {
 
     if (!req.body.userId) {
       console.error("Missing userId in request body");
-      return res.status(400).send("Error");
+       res.status(400).send("Error");
+      return;
     }
 
     if (!req.body.imageUrl) {
       console.error("Missing imageUrl in request body");
-      return res.status(400).send();
+       res.status(400).send();
+      return;
     }
 
     if (typeof req.body.imageUrl !== "string" || !req.body.imageUrl.trim()) {
       console.error("Invalid imageUrl format:", req.body.imageUrl);
-      return res.status(400).send("Error");
+       res.status(400).send("Error");
+      return;
     }
 
     if (!req.body.itemType) {
       console.error("Missing itemType in request body");
-      return res.status(400).send("Error");
+       res.status(400).send("Error");
+      return;
     }
 
     if (req.body.itemType !== "lost" && req.body.itemType !== "found") {
       console.error("Invalid itemType:", req.body.itemType);
-      return res.status(400).send("Error");
+       res.status(400).send("Error");
+      return;
     }
 
     const visionApiData = await enhanceItemWithAI(req.body.imageUrl);
@@ -42,7 +69,8 @@ const uploadItem = async (req: Request, res: Response) => {
     const user = await userModel.findById(req.body.userId);
     if (!user) {
       console.error("User not found:", req.body.userId);
-      return res.status(400).send("Error");
+       res.status(400).send("Error");
+      return;
     }
 
     let locationData = req.body.location;
@@ -105,6 +133,8 @@ const uploadItem = async (req: Request, res: Response) => {
               item2Id: savedItem._id,
               userId2: savedItem.userId,
               matchScore: match.score,
+              user1Confirmed: false,
+              user2Confirmed: false
             };
             const savedMatch = await matchModel.create(newMatch);
             if (!savedMatch) {
@@ -152,10 +182,11 @@ const uploadItem = async (req: Request, res: Response) => {
       console.error("Error notifying matched item owner:", error);
     }
 
-    return res.status(201).send(newItem);
+     res.status(201).send(newItem);
+     return;
   } catch (error) {
     console.error("Error uploading item:", error);
-    res.status(500).send("Error fetching item: " + (error as Error).message);
+     res.status(500).send("Error fetching item: " + (error as Error).message);
     return;
   }
 };
@@ -177,11 +208,13 @@ const getAllItems = async (req: Request, res: Response) => {
 
     const items = await itemModel.find(query);
 
-    res.status(200).send(items);
+     res.status(200).send(items);
     return;
   } catch (error) {
     console.error("Error getting items:", error);
-    res.status(500).send("Error fetching items: " + (error as Error).message);
+     res
+      .status(500)
+      .send("Error fetching items: " + (error as Error).message);
     return;
   }
 };
@@ -189,23 +222,19 @@ const getAllItems = async (req: Request, res: Response) => {
 const getItemById = async (req: Request, res: Response) => {
   try {
     const itemId = req.params.id;
-    if (!itemId) {
-      res.status(400).send("Item ID is required");
-      return;
-    }
-
     const item = await itemModel.findById(itemId);
 
     if (!item) {
-      res.status(404).send("Item not found");
+       res.status(404).send("Item not found");
       return;
     }
-
-    res.status(200).send(item);
+     res.status(200).send(item);
     return;
   } catch (error) {
-    console.log("Error getting item by ID:", error);
-    res.status(500).send("Error fetching item: " + (error as Error).message);
+    console.error("Error getting item by ID:", error);
+     res
+      .status(500)
+      .send("Error fetching item: " + (error as Error).message);
     return;
   }
 };
@@ -217,7 +246,7 @@ const deleteItem = async (req: Request, res: Response) => {
       res.status(404).send("Item not found");
       return;
     }
-
+ 
     const matches = await matchModel.find({
       $or: [{ item1Id: req.params.id }, { item2Id: req.params.id }],
     });
@@ -250,12 +279,16 @@ const enhanceItemWithAI = async (imageUrl: string) => {
         width: 0,
         height: 0,
       },
-    }));
-
+    })
+  );
+  const texts = visionAnalysisResult.texts;
+  const logos = visionAnalysisResult.logos;
     return {
       visionApiData: {
         labels,
         objects,
+        texts,
+        logos,
       },
     };
   } catch (error) {
@@ -269,50 +302,5 @@ const enhanceItemWithAI = async (imageUrl: string) => {
   }
 };
 
-const findPotentialMatches = async (
-  item: IItem
-): Promise<Array<{ item: IItem; score: number }>> => {
-  try {
-    const oppositeType = item.itemType === "lost" ? "found" : "lost";
-    const potentialMatches = await itemModel.find({
-      itemType: oppositeType,
-      isResolved: false,
-    });
+export { uploadItem, getAllItems, getItemById, deleteItem};
 
-    const matches = await MatchingService(item, potentialMatches);
-    const significantMatches = matches.map((match) => ({
-      item: match.item,
-      score: match.confidenceScore,
-    }));
-    return significantMatches;
-  } catch (error) {
-    console.error("Error finding potential matches:", error);
-    return [];
-  }
-};
-
-const isResolved = async (req: Request, res: Response) => {
-  try {
-    const item = await itemModel.findById(req.params.id);
-    if (!item) {
-      res.status(404).send("Item not found");
-      return;
-    }
-
-    item.isResolved = true;
-    await item.save();
-    res.status(200).send("Item marked as resolved");
-  } catch (error) {
-    res
-      .status(500)
-      .send("Error marking item as resolved: " + (error as Error).message);
-  }
-};
-
-export default {
-  uploadItem,
-  getAllItems,
-  getItemById,
-  deleteItem,
-  isResolved,
-};
