@@ -1,7 +1,12 @@
 /** @format */
 
 import express from "express";
-import item_controller from "../controllers/item_controller";
+import {
+  uploadItem,
+  getAllItems,
+  getItemById,
+  deleteItem,
+} from "../controllers/item_controller";
 import { authMiddleware } from "../controllers/auth_controller";
 import multer from "multer";
 
@@ -93,35 +98,6 @@ const upload = multer({
 
 /**
  * @swagger
- * /items/{id}/resolve:
- *   post:
- *     summary: Mark an item as resolved
- *     description: Mark a lost or found item as resolved
- *     tags: [Items]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
-
- *         schema:
- *           type: string
- *         description: Item ID
- *     responses:
- *       200:
- *         description: Item marked as resolved
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: Item not found
- *       500:
- *         description: Server error  
- */
-router.post("/:id/resolve", authMiddleware, item_controller.isResolved);
-
-/**
- * @swagger
  * /items:
  *   post:
  *     summary: Add a new lost or found item
@@ -201,10 +177,10 @@ router.post(
           .send(
             "Missing required file. Please upload an image with field name 'file' or 'image'."
           );
-        return;
+         return;
       }
 
-      const imageUrl = base + file.path.replace(/\\/g, "/");
+      const imageUrl = base + file.path.replace(/\\/g, '/');
       req.body.imageUrl = imageUrl;
       req.body.userId = req.body.userId || req.params.userId;
 
@@ -231,22 +207,24 @@ router.post(
       req.file = file;
 
       if (!req.body.itemType) {
-        res.status(400).send("Missing required field: itemType");
+         res.status(400).send("Missing required field: itemType");
         return;
       }
 
       if (req.body.itemType !== "lost" && req.body.itemType !== "found") {
-        res.status(400).send("Item type must be 'lost' or 'found'");
+       res.status(400).send("Item type must be 'lost' or 'found'");
         return;
       }
 
-      item_controller.uploadItem(req, res);
+      uploadItem(req, res);
       return;
     } catch (error) {
       console.error("Error in /items POST route:", error);
-      res.status(500).send("Error uploading item: " + (error as Error).message);
+       res
+        .status(500)
+        .send("Error uploading item: " + (error as Error).message);
+        return;
     }
-    return;
   }
 );
 
@@ -281,7 +259,7 @@ router.post(
  *       500:
  *         description: Server error
  */
-router.get("/", item_controller.getAllItems);
+router.get("/", getAllItems);
 
 /**
  * @swagger
@@ -314,7 +292,7 @@ router.get("/", item_controller.getAllItems);
  *       500:
  *         description: Server error
  */
-router.get("/:id", item_controller.getItemById);
+router.get("/:id", getItemById);
 
 /**
  * @swagger
@@ -344,6 +322,6 @@ router.get("/:id", item_controller.getItemById);
  *       500:
  *         description: Server error
  */
-router.delete("/:id", authMiddleware, item_controller.deleteItem);
+router.delete("/:id", authMiddleware, deleteItem);
 
 export = router;

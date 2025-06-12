@@ -1,31 +1,23 @@
-/**
- * eslint-disable @typescript-eslint/no-explicit-any
- *
- * @format
- */
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose from "mongoose";
 
 export interface IItem {
   _id?: string;
   userId: string;
   imageUrl: string;
-  itemType: "lost" | "found";
+  itemType: 'lost' | 'found';
   description?: string;
-  location?:
-    | {
-        lat: number;
-        lng: number;
-      }
-    | string;
+  location?: {
+    lat: number;
+    lng: number;
+  } | string;
   date?: Date;
   category?: string;
   colors?: string[];
   brand?: string;
-  condition?: "new" | "worn" | "damaged" | "other";
+  condition?: 'new' | 'worn' | 'damaged' | 'other';
   flaws?: string;
   material?: string;
-  timestamp?: Date;
   ownerName?: string;
   ownerEmail?: string;
   visionApiData?: {
@@ -38,7 +30,27 @@ export interface IItem {
         y: number;
         width: number;
         height: number;
-      };
+      }
+    }>;
+    texts?: Array<{
+      text: string;
+      confidence?: number;
+      boundingBox?: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      }
+    }>;
+    logos?: Array<{
+      description: string;
+      score: number;
+      boundingBox?: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      }
     }>;
   };
   matchedItemId?: string;
@@ -57,57 +69,75 @@ const itemSchema = new mongoose.Schema<IItem>(
     },
     itemType: {
       type: String,
-      enum: ["lost", "found"],
+      enum: ['lost', 'found'],
       required: true,
     },
     description: {
       type: String,
-    },
-    location: {
-      type: mongoose.Schema.Types.Mixed,
+      required: true,
     },
     date: {
       type: Date,
       required: true,
     },
+    location: {
+      type: mongoose.Schema.Types.Mixed,
+      required: true,
+    },
     category: {
       type: String,
+      required: true,
     },
     colors: {
       type: [String],
+      required: true,
     },
     brand: {
       type: String,
     },
     condition: {
       type: String,
+      required: true,
     },
     flaws: {
       type: String,
     },
     material: {
       type: String,
-    },
-    ownerName: {
-      type: String,
-    },
-    ownerEmail: {
-      type: String,
+      required: true,
     },
     visionApiData: {
       labels: [String],
-      objects: [
-        {
-          name: String,
-          score: Number,
-          boundingBox: {
-            x: Number,
-            y: Number,
-            width: Number,
-            height: Number,
-          },
-        },
-      ],
+      objects: [{
+        name: String,
+        score: Number,
+        boundingBox: {
+          x: Number,
+          y: Number,
+          width: Number,
+          height: Number,
+        }
+      }],
+      texts: [{
+        text: String,
+        confidence: Number,
+        boundingBox: {
+          x: Number,
+          y: Number,    
+          width: Number,
+          height: Number,
+        }
+      }],
+      logos: [{
+        description: String,    
+        score: Number,
+        boundingBox: {
+          x: Number,
+          y: Number,
+          width: Number,
+          height: Number,
+        }
+      }]
     },
     matchedItemId: {
       type: String,
@@ -122,4 +152,4 @@ const itemSchema = new mongoose.Schema<IItem>(
 
 const itemModel = mongoose.model<IItem>("items", itemSchema);
 
-export default itemModel;
+export default itemModel; 

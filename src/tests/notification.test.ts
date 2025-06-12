@@ -20,6 +20,20 @@ jest.mock("../services/vision-service", () => ({
           boundingBox: { x: 0, y: 0, width: 100, height: 100 },
         },
       ],
+      texts: [
+        {
+          text: "test-text",
+          confidence: 0.9,
+          boundingBox: { x: 0, y: 0, width: 100, height: 50 },
+        },
+      ],
+      logos: [
+        {
+          description: "test-logo",
+          score: 0.95,
+          boundingBox: { x: 0, y: 0, width: 100, height: 50 },
+        },
+      ],
     }),
   },
 }));
@@ -123,6 +137,8 @@ beforeAll(async () => {
       userId1: userId1,
       item2Id: item2Id,
       userId2: userId2,
+      user1Confirmed: false,
+      user2Confirmed: false,
       matchScore: 85,
     });
     matchId = match._id!.toString();
