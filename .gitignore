@@ -12,3 +12,8 @@ public
 .env
 
 .env_prod
+
+cert
+
+cert/*.key
+cert/*.crt
