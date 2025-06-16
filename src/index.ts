@@ -1,10 +1,10 @@
 /** @format */
-
 import initApp from "./server";
 import http from "http";
 import https from "https";
 import fs from "fs";
 import { initSocket } from "./services/notification.socket-service";
+import path from "path";
 
 const port = process.env.PORT;
 
@@ -14,9 +14,11 @@ initApp().then((app) => {
     console.log("development");
     server = http.createServer(app);
   } else {
+    const certPath = path.join(__dirname, "cert", "CSB.crt");
+    const keyPath = path.join(__dirname, "cert", "myserver.key");
     const options = {
-      key: fs.readFileSync("./client-key.pem"),
-      cert: fs.readFileSync("./client-cert.pem"),
+     cert: fs.readFileSync(certPath),
+      key: fs.readFileSync(keyPath),
     };
     server = https.createServer(options, app);
   }
